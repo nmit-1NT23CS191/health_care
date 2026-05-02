@@ -63,6 +63,8 @@ const UserDashboard = () => {
     const [isAddingPolicy, setIsAddingPolicy] = useState(false);
     const [isVaultOpen, setIsVaultOpen] = useState(false);
     const [isNetworkOpen, setIsNetworkOpen] = useState(false);
+    const [networkSearch, setNetworkSearch] = useState('');
+    const [selectedHospitalIndex, setSelectedHospitalIndex] = useState(0);
     const [policyNameInput, setPolicyNameInput] = useState('');
     const [policyIdInput, setPolicyIdInput] = useState('');
     const [policyFile, setPolicyFile] = useState(null);
@@ -1047,16 +1049,29 @@ const UserDashboard = () => {
                                 <div className="p-8 lg:col-span-1 bg-slate-50 border-r border-slate-200">
                                     <div className="relative mb-6">
                                         <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                                        <input type="text" placeholder="Search hospitals..." className="w-full pl-11 pr-4 py-3 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20" />
+                                        <input 
+                                            type="text" 
+                                            placeholder="Search hospitals..." 
+                                            className="w-full pl-11 pr-4 py-3 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20" 
+                                            value={networkSearch}
+                                            onChange={(e) => setNetworkSearch(e.target.value)}
+                                        />
                                     </div>
-                                    <div className="space-y-3">
+                                    <div className="space-y-3 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
                                         {[
-                                            { name: 'Apollo Health City', dist: '1.2 km', type: 'Super Specialty' },
-                                            { name: 'Fortis Memorial', dist: '3.5 km', type: 'Multi-Specialty' },
-                                            { name: 'Manipal Hospital', dist: '5.1 km', type: 'General' },
-                                            { name: 'Max Super Speciality', dist: '6.8 km', type: 'Super Specialty' }
-                                        ].map((h, i) => (
-                                            <div key={i} className="p-4 bg-white rounded-xl border border-slate-100 hover:border-blue-500 transition-all cursor-pointer group shadow-sm">
+                                            { name: 'Apollo Health City', dist: '1.2 km', type: 'Super Specialty', color: 'blue' },
+                                            { name: 'Fortis Memorial', dist: '3.5 km', type: 'Multi-Specialty', color: 'emerald' },
+                                            { name: 'Manipal Hospital', dist: '5.1 km', type: 'General', color: 'cyan' },
+                                            { name: 'Max Super Speciality', dist: '6.8 km', type: 'Super Specialty', color: 'indigo' },
+                                            { name: 'Narayana Health', dist: '8.4 km', type: 'Cardiac Care', color: 'rose' }
+                                        ]
+                                        .filter(h => h.name.toLowerCase().includes(networkSearch.toLowerCase()))
+                                        .map((h, i) => (
+                                            <div 
+                                                key={i} 
+                                                onClick={() => setSelectedHospitalIndex(i)}
+                                                className={`p-4 rounded-xl border transition-all cursor-pointer group shadow-sm ${selectedHospitalIndex === i ? 'bg-white border-blue-500 ring-2 ring-blue-500/10' : 'bg-white border-slate-100 hover:border-slate-300'}`}
+                                            >
                                                 <div className="flex justify-between items-start mb-1">
                                                     <h4 className="text-sm font-black text-slate-800">{h.name}</h4>
                                                     <span className="text-[10px] font-black text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full">CASHLESS</span>
@@ -1068,16 +1083,46 @@ const UserDashboard = () => {
                                 </div>
                                 
                                 <div className="lg:col-span-2 p-8 flex flex-col items-center justify-center bg-slate-100 relative min-h-[400px]">
-                                    <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1526778548025-fa2f459cd5c1?q=80&w=2000')] bg-cover bg-center opacity-20 grayscale"></div>
+                                    <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1526778548025-fa2f459cd5c1?q=80&w=2000')] bg-cover bg-center opacity-20 grayscale transition-all duration-700" style={{ filter: `hue-rotate(${selectedHospitalIndex * 45}deg)` }}></div>
                                     <div className="relative z-10 flex flex-col items-center text-center">
                                         <div className="w-20 h-20 bg-blue-600/10 rounded-full flex items-center justify-center mb-6 animate-pulse">
                                             <Activity className="w-10 h-10 text-blue-600" />
                                         </div>
-                                        <h4 className="text-2xl font-black text-slate-900 mb-2 tracking-tight">Interactive Map Active</h4>
-                                        <p className="text-sm text-slate-500 max-w-sm mb-8">Vera AI is currently tracking 1,200+ network providers in your region. Cashless approvals are active.</p>
+                                        <h4 className="text-2xl font-black text-slate-900 mb-2 tracking-tight">
+                                            {[
+                                                { name: 'Apollo Health City', dist: '1.2 km', type: 'Super Specialty' },
+                                                { name: 'Fortis Memorial', dist: '3.5 km', type: 'Multi-Specialty' },
+                                                { name: 'Manipal Hospital', dist: '5.1 km', type: 'General' },
+                                                { name: 'Max Super Speciality', dist: '6.8 km', type: 'Super Specialty' },
+                                                { name: 'Narayana Health', dist: '8.4 km', type: 'Cardiac Care' }
+                                            ][selectedHospitalIndex]?.name}
+                                        </h4>
+                                        <p className="text-sm text-slate-500 max-w-sm mb-8">Vera AI has verified this provider for instant cashless claims. Distance: {[
+                                            { name: 'Apollo Health City', dist: '1.2 km' },
+                                            { name: 'Fortis Memorial', dist: '3.5 km' },
+                                            { name: 'Manipal Hospital', dist: '5.1 km' },
+                                            { name: 'Max Super Speciality', dist: '6.8 km' },
+                                            { name: 'Narayana Health', dist: '8.4 km' }
+                                        ][selectedHospitalIndex]?.dist}.</p>
                                         <div className="flex space-x-4">
-                                            <button className="px-8 py-4 bg-blue-600 text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl shadow-blue-600/20 hover:scale-105 transition-transform">Get Directions</button>
-                                            <button className="px-8 py-4 bg-white text-slate-900 border border-slate-200 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-slate-50 transition-colors">Book OPD</button>
+                                            <button 
+                                                onClick={() => alert(`Navigating to ${[
+                                                    { name: 'Apollo Health City' },
+                                                    { name: 'Fortis Memorial' },
+                                                    { name: 'Manipal Hospital' },
+                                                    { name: 'Max Super Speciality' },
+                                                    { name: 'Narayana Health' }
+                                                ][selectedHospitalIndex]?.name}...`)}
+                                                className="px-8 py-4 bg-blue-600 text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl shadow-blue-600/20 hover:scale-105 transition-transform"
+                                            >
+                                                Get Directions
+                                            </button>
+                                            <button 
+                                                onClick={() => alert('Booking system connecting to Vera AI human agents...')}
+                                                className="px-8 py-4 bg-white text-slate-900 border border-slate-200 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-slate-50 transition-colors"
+                                            >
+                                                Book OPD
+                                            </button>
                                         </div>
                                     </div>
                                 </div>
