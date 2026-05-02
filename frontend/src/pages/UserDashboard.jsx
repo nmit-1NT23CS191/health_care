@@ -459,9 +459,17 @@ const UserDashboard = () => {
                                                         >
                                                             <Trash2 className="w-3.5 h-3.5" />
                                                         </button>
-                                                        <div className="flex justify-between items-start mb-1 pr-6">
+                                                        <div className="flex justify-between items-start mb-2 pr-6">
                                                             <div className="flex flex-col">
-                                                                <span className="font-bold text-slate-900 text-sm">{p.name || 'Untitled Policy'}</span>
+                                                                <div className="flex items-center space-x-2">
+                                                                    <span className="font-bold text-slate-900 text-sm">{p.name || 'Untitled Policy'}</span>
+                                                                    {p.status === 'ACTIVE' && (
+                                                                        <span className="relative flex h-2 w-2">
+                                                                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                                                                            <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+                                                                        </span>
+                                                                    )}
+                                                                </div>
                                                                 {p.status === 'ACTIVE' && (
                                                                     <span className="flex items-center text-[8px] font-black text-blue-500 bg-blue-50 px-2 py-0.5 rounded-full border border-blue-100 animate-pulse mt-1 w-fit">
                                                                         <ShieldCheck className="w-2.5 h-2.5 mr-1" /> VERA VERIFIED
@@ -472,7 +480,22 @@ const UserDashboard = () => {
                                                                 {p.status || 'PENDING'}
                                                             </span>
                                                         </div>
-                                                        <p className="text-xs text-slate-500">ID: {p.policyId}</p>
+                                                        
+                                                        {p.status === 'ACTIVE' && (
+                                                            <div className="mt-3">
+                                                                <div className="w-full bg-slate-200/50 rounded-full h-1.5 overflow-hidden">
+                                                                    <div 
+                                                                        className="bg-[#0052CC] h-full rounded-full transition-all duration-1000"
+                                                                        style={{ width: `${Math.min(100, (p.usedCover / p.totalCover) * 100 || 0)}%` }}
+                                                                    ></div>
+                                                                </div>
+                                                                <div className="flex justify-between mt-1.5">
+                                                                    <span className="text-[9px] text-slate-400 font-bold uppercase tracking-widest">{p.policyId}</span>
+                                                                    <span className="text-[9px] text-slate-500 font-black uppercase tracking-widest">Utilized: {Math.round((p.usedCover / p.totalCover) * 100 || 0)}%</span>
+                                                                </div>
+                                                            </div>
+                                                        )}
+                                                        {p.status !== 'ACTIVE' && <p className="text-xs text-slate-500">ID: {p.policyId}</p>}
                                                     </div>
                                                 ))
                                             ) : (
