@@ -370,7 +370,7 @@ const UserDashboard = () => {
                                     </div>
 
                                     {/* Active Policies */}
-                                    <div className="bg-white p-6 rounded-[16px] border border-slate-200 shadow-sm min-h-[160px] flex flex-col">
+                                    <div className="bg-white p-7 rounded-[24px] border border-slate-200 shadow-sm min-h-[180px] flex flex-col hover-lift">
                                         <div className="flex justify-between items-center mb-4">
                                             <h2 className="text-lg font-bold text-slate-800 flex items-center"><FileCheck className="w-5 h-5 mr-2 text-[#0052CC]"/> My Policies</h2>
                                             {userPolicies.length > 0 && !isAddingPolicy && (
@@ -384,7 +384,7 @@ const UserDashboard = () => {
                                                     <div 
                                                         key={idx} 
                                                         onClick={() => setSelectedPolicyIndex(idx)}
-                                                        className={`p-3 border rounded-[12px] cursor-pointer transition-all relative group ${selectedPolicyIndex === idx ? 'bg-blue-50 border-blue-400 ring-1 ring-blue-100' : 'bg-slate-50 border-slate-100 hover:bg-slate-100'}`}
+                                                        className={`p-4 border rounded-[16px] cursor-pointer transition-all relative group hover-lift ${selectedPolicyIndex === idx ? 'bg-blue-50 border-[#0052CC] ring-2 ring-blue-100 shadow-md scale-[1.02]' : 'bg-slate-50 border-slate-100 hover:bg-white hover:border-slate-200'}`}
                                                     >
                                                         <button 
                                                             onClick={(e) => { e.stopPropagation(); handleDeletePolicy(p._id); }}
