@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getUserClaims, createClaim, uploadClaimDocument, triggerAiAnalysis, updateUserPolicy, deleteUserPolicy, getPolicyOcr } from '../services/api';
+import { getUserClaims, createClaim, uploadClaimDocument, triggerAiAnalysis, updateUserPolicy, deleteUserPolicy, getUserProfile } from '../services/api';
 import { UploadCloud, FileText, Activity, LogOut, CheckCircle, Clock, Search, ShieldAlert, ArrowRight, ShieldCheck, FileCheck, CheckSquare, RefreshCw, X, Trash2 } from 'lucide-react';
 import Navbar from '../components/Navbar';
 import { useLanguage } from '../context/LanguageContext';
@@ -10,7 +10,7 @@ const UserDashboard = () => {
     const [claims, setClaims] = useState([]);
     const [step, setStep] = useState(0); // 0: List, 1: Auth Gate, 2: Claim Type, 3: Hospital, 4: Upload, 5: Processing, 6: Results
     
-    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    const [user, setUser] = useState(JSON.parse(localStorage.getItem('user') || '{}'));
     const navigate = useNavigate();
 
     // Form States
@@ -38,8 +38,20 @@ const UserDashboard = () => {
             navigate('/login');
             return;
         }
+        loadUserProfile();
         loadClaims();
     }, []);
+
+    const loadUserProfile = async () => {
+        try {
+            const data = await getUserProfile(user.id);
+            setUser(data);
+            setUserPolicies(data.policies || []);
+            localStorage.setItem('user', JSON.stringify(data));
+        } catch (err) {
+            console.error('Failed to load user profile');
+        }
+    };
 
     const loadClaims = async () => {
         try {

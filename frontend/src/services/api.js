@@ -22,6 +22,11 @@ export const registerUser = async (name, phone, password) => {
     return res.data;
 };
 
+export const getUserProfile = async (userId) => {
+    const res = await api.get(`/auth/${userId}`);
+    return res.data;
+};
+
 export const updateUserPolicy = async (userId, formData) => {
     const res = await api.post(`/auth/${userId}/policy`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' }

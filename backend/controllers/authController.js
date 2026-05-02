@@ -41,6 +41,25 @@ exports.register = async (req, res) => {
     }
 };
 
+exports.getUser = async (req, res) => {
+    try {
+        const user = await User.findById(req.params.id).select('-password');
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+        res.status(200).json({
+            id: user._id,
+            name: user.name,
+            phone: user.phone,
+            role: user.role,
+            riskProfile: user.riskProfile,
+            policies: user.policies
+        });
+    } catch (error) {
+        res.status(500).json({ message: 'Server Error' });
+    }
+};
+
 exports.login = async (req, res) => {
     try {
         const { phone, password } = req.body;

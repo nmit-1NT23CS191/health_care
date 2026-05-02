@@ -357,11 +357,16 @@ const AgentDashboard = () => {
                                 </div>
                             </div>
                         </div>
-                    ) : viewMode === 'policies' ? (
-                        selectedPolicy ? (
-                            <div className="max-w-3xl mx-auto space-y-6">
-                                <div className="flex justify-between items-center mb-2">
-                                    <h2 className="text-2xl font-bold font-['Manrope'] text-slate-900">Policy Verification</h2>
+                    ) : (
+                        <div className="h-full flex items-center justify-center text-slate-400 font-medium">
+                            Select a claim from the queue to review
+                        </div>
+                    )
+                ) : viewMode === 'policies' ? (
+                    selectedPolicy ? (
+                        <div className="max-w-3xl mx-auto space-y-6">
+                            <div className="flex justify-between items-center mb-2">
+                                <h2 className="text-2xl font-bold font-['Manrope'] text-slate-900">Policy Verification</h2>
                                 </div>
 
                                 <div className="grid grid-cols-2 gap-6">
