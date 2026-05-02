@@ -251,7 +251,7 @@ const AgentDashboard = () => {
                         <div className="logo-container">
                             <img src={logo} alt="VeraClaim" className="h-20 w-20 object-contain animate-float logo-hover-effect" />
                         </div>
-                        <h1 className="text-3xl font-black text-slate-900 tracking-tighter gradient-text">Agent Hub</h1>
+                        <h1 className="text-2xl font-black text-slate-900 tracking-tighter gradient-text">Agent Hub</h1>
                     </div>
                     
                     <div className="space-y-4">
