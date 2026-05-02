@@ -4,6 +4,25 @@ import { getPendingClaims, agentDecision, getPendingPolicies, submitPolicyDecisi
 import { Users, FileText, AlertTriangle, LogOut, Check, X, Info, Activity, ShieldAlert, FileSignature, ShieldCheck, BarChart2, TrendingUp, CalendarDays, Clock, History, Search, ArrowUpDown } from 'lucide-react';
 import logo from '../assets/veraclaim_icon.png';
 
+const CountUp = ({ end, duration = 1000 }) => {
+    const [count, setCount] = useState(0);
+    useEffect(() => {
+        let start = 0;
+        const increment = end / (duration / 16);
+        const timer = setInterval(() => {
+            start += increment;
+            if (start >= end) {
+                setCount(end);
+                clearInterval(timer);
+            } else {
+                setCount(Math.floor(start));
+            }
+        }, 16);
+        return () => clearInterval(timer);
+    }, [end, duration]);
+    return <span>{count.toLocaleString()}</span>;
+};
+
 const AgentDashboard = () => {
     const [viewMode, setViewMode] = useState(() => localStorage.getItem('agent_view_mode') || 'analytics'); // 'analytics', 'claims', 'policies', 'history'
     const [claims, setClaims] = useState([]);
@@ -303,9 +322,15 @@ const AgentDashboard = () => {
                                 { label: 'Approved This Month', value: analytics?.month?.approved ?? '—', color: 'text-blue-600', bg: 'bg-blue-50', border: 'border-blue-200', icon: <TrendingUp className="w-5 h-5 text-blue-500"/> },
                                 { label: 'Rejected This Month', value: analytics?.month?.rejected ?? '—', color: 'text-orange-500', bg: 'bg-orange-50', border: 'border-orange-200', icon: <AlertTriangle className="w-5 h-5 text-orange-500"/> },
                             ].map((card, i) => (
-                                <div key={i} className={`${card.bg} border ${card.border} rounded-[16px] p-5 shadow-sm`}>
-                                    <div className="flex justify-between items-start mb-2">{card.icon}<span className="text-xs font-bold text-slate-500 uppercase tracking-wide text-right">{card.label}</span></div>
-                                    <p className={`text-4xl font-bold ${card.color}`}>{card.value}</p>
+                                <div key={i} className={`${card.bg} border ${card.border} rounded-[24px] p-6 shadow-sm hover-lift group relative overflow-hidden`}>
+                                    <div className="absolute top-0 right-0 w-20 h-20 bg-white/10 rounded-bl-full transform translate-x-8 -translate-y-8 group-hover:scale-150 transition-transform duration-500"></div>
+                                    <div className="flex justify-between items-start mb-3 relative z-10">
+                                        <div className="p-2.5 bg-white rounded-xl shadow-sm group-hover:rotate-12 transition-transform">{card.icon}</div>
+                                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">{card.label}</span>
+                                    </div>
+                                    <p className={`text-4xl font-black ${card.color} relative z-10`}>
+                                        {analytics ? <CountUp end={card.value === '—' ? 0 : Number(card.value)} /> : '—'}
+                                    </p>
                                 </div>
                             ))}
                         </div>

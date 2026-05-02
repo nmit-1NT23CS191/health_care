@@ -472,7 +472,12 @@ const UserDashboard = () => {
                                         {t('Claim History', 'दावा इतिहास')}
                                     </h2>
                                     {claims.length === 0 ? (
-                                        <div className="text-slate-400 text-center py-20 bg-white rounded-[24px] border border-slate-200 shadow-sm italic">No claims found. Start by creating a new claim.</div>
+                                        <div className="space-y-4">
+                                            {[1, 2, 3].map(i => (
+                                                <div key={i} className="h-28 bg-white/50 rounded-[24px] border border-slate-100 shimmer"></div>
+                                            ))}
+                                            <div className="text-slate-400 text-center py-20 bg-white rounded-[24px] border border-slate-200 shadow-sm italic">No claims found. Start by creating a new claim.</div>
+                                        </div>
                                     ) : (
                                         <div className="space-y-5">
                                             {claims.map((claim, idx) => (
