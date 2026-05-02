@@ -22,8 +22,27 @@ export const registerUser = async (name, phone, password) => {
     return res.data;
 };
 
-export const createClaim = async (hospitalName, diagnosis, claimType) => {
-    const res = await api.post('/claims/create', { hospitalName, diagnosis, claimType });
+export const updateUserPolicy = async (userId, formData) => {
+    const res = await api.post(`/auth/${userId}/policy`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+    });
+    return res.data;
+};
+
+export const deleteUserPolicy = async (userId, policyId) => {
+    const res = await api.delete(`/auth/${userId}/policy/${policyId}`);
+    return res.data;
+};
+
+export const getPolicyOcr = async (formData) => {
+    const res = await api.post('/auth/policy/ocr', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+    });
+    return res.data;
+};
+
+export const createClaim = async (hospitalName, diagnosis, claimType, policyId) => {
+    const res = await api.post('/claims/create', { hospitalName, diagnosis, claimType, policyId });
     return res.data;
 };
 

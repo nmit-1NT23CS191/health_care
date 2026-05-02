@@ -6,7 +6,7 @@ const fs = require('fs');
 
 exports.createClaim = async (req, res) => {
     try {
-        const { hospitalName, diagnosis, claimType } = req.body;
+        const { hospitalName, diagnosis, claimType, policyId } = req.body;
         
         let hospital = await Hospital.findOne({ name: new RegExp(hospitalName, 'i') });
         if (!hospital) {
@@ -25,6 +25,7 @@ exports.createClaim = async (req, res) => {
         const newClaim = new Claim({
             userId: req.user.id,
             hospitalId: hospital._id,
+            policyId: policyId,
             claimType: claimType || 'Other',
             ocrData: {
                 hospitalName: hospitalName,

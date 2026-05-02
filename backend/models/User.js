@@ -8,7 +8,13 @@ const UserSchema = new mongoose.Schema({
     role: { type: String, enum: ['patient', 'agent'], default: 'patient' },
     riskProfile: { type: String, enum: ['LOW', 'MEDIUM', 'HIGH'], default: 'LOW' },
     kycStatus: { type: String, enum: ['UNVERIFIED', 'VERIFIED'], default: 'UNVERIFIED' },
-    policyNumber: { type: String },
+    policies: [{
+        name: { type: String },
+        policyId: { type: String },
+        totalCover: { type: Number, default: 0 },
+        usedCover: { type: Number, default: 0 },
+        documentUrl: { type: String }
+    }],
     claimsHistory: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Claim' }]
 }, { timestamps: true });
 

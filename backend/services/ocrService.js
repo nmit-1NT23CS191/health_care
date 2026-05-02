@@ -87,7 +87,44 @@ const parseExtractedText = (text) => {
     };
 };
 
+const parsePolicyText = (text) => {
+    const lines = text.split('\n').map(line => line.trim()).filter(line => line.length > 0);
+    
+    let policyName = '';
+    let policyId = '';
+    let totalCover = 0;
+
+    for (const line of lines) {
+        const lowerLine = line.toLowerCase();
+        
+        if (lowerLine.includes('policy name') || lowerLine.includes('plan name')) {
+            const parts = line.split(/[:\s\-]+/);
+            policyName = parts.slice(1).join(' ');
+        }
+
+        if (lowerLine.includes('policy id') || lowerLine.includes('policy no') || lowerLine.includes('certificate no')) {
+            const idMatch = line.match(/[A-Z0-9\-]{5,}/i);
+            if (idMatch) policyId = idMatch[0];
+        }
+
+        if (lowerLine.includes('sum insured') || lowerLine.includes('total cover') || lowerLine.includes('limit') || lowerLine.includes('amount')) {
+            const numbers = line.match(/\d+([,]\d+)*(\.\d{1,2})?/g);
+            if (numbers && numbers.length > 0) {
+                const maxNum = Math.max(...numbers.map(n => parseFloat(n.replace(/,/g, ''))));
+                if (maxNum > totalCover && maxNum > 1000) totalCover = maxNum;
+            }
+        }
+    }
+
+    return { 
+        policyName: policyName || 'Parsed Policy', 
+        policyId: policyId || `POL-${Math.floor(Math.random()*10000)}`, 
+        totalCover: totalCover || 500000 // Default cover if extraction fails
+    };
+};
+
 module.exports = {
     performOCR,
-    parseExtractedText
+    parseExtractedText,
+    parsePolicyText
 };

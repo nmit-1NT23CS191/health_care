@@ -182,7 +182,7 @@ const AgentDashboard = () => {
                                         </div>
                                         <div className="pt-3 border-t border-slate-100">
                                             <p className="text-slate-500 mb-1">Verified Policy ID</p>
-                                            <p className="font-medium text-[#0052CC]">POL-492810-AB</p>
+                                            <p className="font-medium text-[#0052CC]">{selectedClaim.userId?.policyNumber || 'N/A'}</p>
                                         </div>
                                     </div>
                                 </div>

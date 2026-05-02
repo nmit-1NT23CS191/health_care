@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getUserClaims, createClaim, uploadClaimDocument, triggerAiAnalysis } from '../services/api';
-import { UploadCloud, FileText, Activity, LogOut, CheckCircle, Clock, Search, ShieldAlert, ArrowRight, ShieldCheck, FileCheck, CheckSquare, RefreshCw, X } from 'lucide-react';
+import { getUserClaims, createClaim, uploadClaimDocument, triggerAiAnalysis, updateUserPolicy, deleteUserPolicy, getPolicyOcr } from '../services/api';
+import { UploadCloud, FileText, Activity, LogOut, CheckCircle, Clock, Search, ShieldAlert, ArrowRight, ShieldCheck, FileCheck, CheckSquare, RefreshCw, X, Trash2 } from 'lucide-react';
 import Navbar from '../components/Navbar';
 import { useLanguage } from '../context/LanguageContext';
 
@@ -10,6 +10,9 @@ const UserDashboard = () => {
     const [claims, setClaims] = useState([]);
     const [step, setStep] = useState(0); // 0: List, 1: Auth Gate, 2: Claim Type, 3: Hospital, 4: Upload, 5: Processing, 6: Results
     
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    const navigate = useNavigate();
+
     // Form States
     const [auth, setAuth] = useState({ policyNumber: '', dob: '', otpSent: false, otp: '', verified: false });
     const [claimType, setClaimType] = useState('');
@@ -23,9 +26,12 @@ const UserDashboard = () => {
     const [error, setError] = useState('');
     const [analysisStage, setAnalysisStage] = useState(0);
     const [processedClaim, setProcessedClaim] = useState(null);
-    
-    const user = JSON.parse(localStorage.getItem('user') || '{}');
-    const navigate = useNavigate();
+    const [userPolicies, setUserPolicies] = useState(user.policies || []);
+    const [isAddingPolicy, setIsAddingPolicy] = useState(false);
+    const [policyNameInput, setPolicyNameInput] = useState('');
+    const [policyIdInput, setPolicyIdInput] = useState('');
+    const [policyFile, setPolicyFile] = useState(null);
+    const [selectedPolicyIndex, setSelectedPolicyIndex] = useState(user.policies?.length > 0 ? 0 : -1);
 
     useEffect(() => {
         if (!user.id) {
@@ -44,14 +50,99 @@ const UserDashboard = () => {
         }
     };
 
+    const handleDeletePolicy = async (policyId) => {
+        if (!window.confirm('Are you sure you want to delete this policy?')) return;
+        try {
+            const res = await deleteUserPolicy(user.id, policyId);
+            setUserPolicies(res.user.policies);
+            const updatedUser = { ...user, policies: res.user.policies };
+            localStorage.setItem('user', JSON.stringify(updatedUser));
+            if (res.user.policies.length === 0) setSelectedPolicyIndex(-1);
+            else setSelectedPolicyIndex(0);
+        } catch (err) {
+            setError('Failed to delete policy');
+        }
+    };
+
+    const handleOcrProcess = async (file) => {
+        if (!file) return;
+        setPolicyFile(file);
+        setIsOcrLoading(true);
+        setError('');
+        
+        try {
+            const formData = new FormData();
+            formData.append('policyDoc', file);
+            const res = await getPolicyOcr(formData);
+            const { policyName, policyId, totalCover } = res.extractedData;
+            
+            // Pre-fill the form with extracted data
+            setPolicyNameInput(policyName || '');
+            setPolicyIdInput(policyId || '');
+            // We'll store the totalCover in a hidden state or just let the user edit it
+            // For this UI, let's add an amount field
+            setPolicyAmountInput(totalCover || 500000);
+        } catch (err) {
+            console.error('OCR failed', err);
+            setError('OCR failed to read document. Please enter details manually.');
+        } finally {
+            setIsOcrLoading(false);
+        }
+    };
+
+    const [policyAmountInput, setPolicyAmountInput] = useState(500000);
+    const handleAddPolicy = async () => {
+        if (!policyNameInput || !policyIdInput) return setError('Please enter both Policy Name and ID');
+        setUploading(true);
+        try {
+            const formData = new FormData();
+            formData.append('name', policyNameInput);
+            formData.append('policyId', policyIdInput);
+            formData.append('totalCover', policyAmountInput);
+            if (policyFile) {
+                formData.append('policyDoc', policyFile);
+            }
+
+            const res = await updateUserPolicy(user.id, formData);
+            setUserPolicies(res.user.policies);
+            
+            const updatedUser = { ...user, policies: res.user.policies };
+            localStorage.setItem('user', JSON.stringify(updatedUser));
+            
+            if (res.user.policies.length > 0) {
+                setSelectedPolicyIndex(res.user.policies.length - 1);
+            }
+
+            setIsAddingPolicy(false);
+            setPolicyNameInput('');
+            setPolicyIdInput('');
+            setPolicyFile(null);
+            setPolicyAmountInput(500000);
+            setError('');
+        } catch (err) {
+            setError(err.response?.data?.message || 'Failed to add policy');
+        } finally {
+            setUploading(false);
+        }
+    };
+
     const handleSendOTP = () => {
         if (!auth.policyNumber || !auth.dob) return setError('Enter Policy Number and DOB');
+        
+        // Verify policy exists before sending OTP
+        const policyExists = userPolicies.some(p => p.policyId === auth.policyNumber);
+        if (!policyExists) return setError('The Policy ID you entered is not correct or not linked to your account. Please link it from the dashboard.');
+        
         setError('');
         setAuth({ ...auth, otpSent: true });
     };
 
     const handleVerifyOTP = () => {
         if (auth.otp !== '1234') return setError('Invalid OTP. Use 1234 for demo.');
+        
+        const policyExists = userPolicies.some(p => p.policyId === auth.policyNumber);
+        if (!policyExists) return setError('This policy ID is not linked to your account. Please link it first on the dashboard.');
+        
         setError('');
         setAuth({ ...auth, verified: true });
         setStep(2);
@@ -71,7 +162,7 @@ const UserDashboard = () => {
         setUploading(true);
         setError('');
         try {
-            const res = await createClaim(hospitalName, diagnosis, claimType);
+            const res = await createClaim(hospitalName, diagnosis, claimType, auth.policyNumber);
             setCurrentClaimId(res.claim._id);
             setStep(4);
         } catch (err) {
@@ -217,33 +308,143 @@ const UserDashboard = () => {
                                 
                                 {/* Eligibility & Cover Overview */}
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    <div className="bg-white p-6 rounded-[16px] border border-slate-200 shadow-sm">
+                                    <div className="bg-white p-6 rounded-[16px] border border-slate-200 shadow-sm min-h-[160px]">
                                         <h2 className="text-lg font-bold text-slate-800 mb-4 flex items-center"><ShieldCheck className="w-5 h-5 mr-2 text-[#0052CC]"/> Eligibility & Cover Overview</h2>
-                                        <div className="space-y-2">
-                                            <div className="flex justify-between text-sm font-medium">
-                                                <span className="text-slate-500">Total Cover</span>
-                                                <span className="text-slate-900">₹5,00,000</span>
+                                        
+                                        {selectedPolicyIndex >= 0 && userPolicies[selectedPolicyIndex] ? (
+                                            <div className="space-y-4">
+                                                <div className="flex justify-between text-sm font-medium">
+                                                    <span className="text-slate-500">Total Cover ({userPolicies[selectedPolicyIndex].name})</span>
+                                                    <span className="text-slate-900 font-bold">₹{userPolicies[selectedPolicyIndex].totalCover?.toLocaleString()}</span>
+                                                </div>
+                                                <div className="w-full bg-slate-100 rounded-full h-3">
+                                                    <div 
+                                                        className="bg-[#0052CC] h-3 rounded-full transition-all duration-1000" 
+                                                        style={{ width: `${Math.min(100, (userPolicies[selectedPolicyIndex].usedCover / userPolicies[selectedPolicyIndex].totalCover) * 100 || 0)}%` }}
+                                                    ></div>
+                                                </div>
+                                                <div className="flex justify-between text-xs pt-1">
+                                                    <span className="text-slate-500">Used: ₹{userPolicies[selectedPolicyIndex].usedCover?.toLocaleString()}</span>
+                                                    <span className="font-bold text-green-600">Available: ₹{(userPolicies[selectedPolicyIndex].totalCover - userPolicies[selectedPolicyIndex].usedCover)?.toLocaleString()}</span>
+                                                </div>
                                             </div>
-                                            <div className="w-full bg-slate-100 rounded-full h-3">
-                                                <div className="bg-[#0052CC] h-3 rounded-full" style={{ width: '30%' }}></div>
+                                        ) : (
+                                            <div className="h-24 flex items-center justify-center border border-dashed border-slate-200 rounded-lg">
+                                                <p className="text-slate-400 text-sm italic">Select a policy to view coverage</p>
                                             </div>
-                                            <div className="flex justify-between text-xs text-slate-500 pt-1">
-                                                <span>Used: ₹1,50,000</span>
-                                                <span className="font-bold text-green-600">Available: ₹3,50,000</span>
-                                            </div>
-                                        </div>
+                                        )}
                                     </div>
 
                                     {/* Active Policies */}
-                                    <div className="bg-white p-6 rounded-[16px] border border-slate-200 shadow-sm">
-                                        <h2 className="text-lg font-bold text-slate-800 mb-4 flex items-center"><FileCheck className="w-5 h-5 mr-2 text-green-600"/> Active Policies</h2>
-                                        <div className="p-3 bg-blue-50 border border-blue-100 rounded-[12px]">
-                                            <div className="flex justify-between items-start mb-1">
-                                                <span className="font-bold text-slate-900">Comprehensive Health Plus</span>
-                                                <span className="px-2 py-0.5 bg-green-100 text-green-700 text-[10px] font-bold rounded">ACTIVE</span>
-                                            </div>
-                                            <p className="text-xs text-slate-500 mb-2">Policy ID: POL-492810-AB</p>
-                                            <p className="text-xs text-slate-600 font-medium"><RefreshCw className="w-3 h-3 inline mr-1"/> Renews on 12 Nov 2026</p>
+                                    <div className="bg-white p-6 rounded-[16px] border border-slate-200 shadow-sm min-h-[160px] flex flex-col">
+                                        <div className="flex justify-between items-center mb-4">
+                                            <h2 className="text-lg font-bold text-slate-800 flex items-center"><FileCheck className="w-5 h-5 mr-2 text-green-600"/> Active Policies</h2>
+                                            {userPolicies.length > 0 && !isAddingPolicy && (
+                                                <button onClick={() => setIsAddingPolicy(true)} className="text-[10px] font-bold text-[#0052CC] hover:underline">+ ADD MORE</button>
+                                            )}
+                                        </div>
+                                        
+                                        <div className="space-y-3 flex-1 overflow-y-auto max-h-[250px] pr-1 custom-scrollbar">
+                                            {userPolicies.length > 0 ? (
+                                                userPolicies.map((p, idx) => (
+                                                    <div 
+                                                        key={idx} 
+                                                        onClick={() => setSelectedPolicyIndex(idx)}
+                                                        className={`p-3 border rounded-[12px] cursor-pointer transition-all relative group ${selectedPolicyIndex === idx ? 'bg-blue-50 border-blue-400 ring-1 ring-blue-100' : 'bg-slate-50 border-slate-100 hover:bg-slate-100'}`}
+                                                    >
+                                                        <button 
+                                                            onClick={(e) => { e.stopPropagation(); handleDeletePolicy(p._id); }}
+                                                            className="absolute top-2 right-2 p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-md transition-colors opacity-0 group-hover:opacity-100"
+                                                        >
+                                                            <Trash2 className="w-3.5 h-3.5" />
+                                                        </button>
+                                                        <div className="flex justify-between items-start mb-1 pr-6">
+                                                            <span className="font-bold text-slate-900 text-sm">{p.name || 'Untitled Policy'}</span>
+                                                            <span className="px-2 py-0.5 bg-green-100 text-green-700 text-[10px] font-bold rounded">ACTIVE</span>
+                                                        </div>
+                                                        <p className="text-xs text-slate-500">ID: {p.policyId}</p>
+                                                    </div>
+                                                ))
+                                            ) : (
+                                                !isAddingPolicy && (
+                                                    <div className="flex-1 flex flex-col items-center justify-center border-2 border-dashed border-slate-200 rounded-[12px] p-4 text-center">
+                                                        <p className="text-[11px] text-slate-500 mb-2">No active policies found.</p>
+                                                        <button 
+                                                            onClick={() => setIsAddingPolicy(true)}
+                                                            className="px-4 py-2 bg-[#0052CC] text-white text-xs font-bold rounded-[8px] hover:bg-blue-800 transition-colors shadow-sm"
+                                                        >
+                                                            + ADD POLICY
+                                                        </button>
+                                                    </div>
+                                                )
+                                            )}
+
+                                            {isAddingPolicy && (
+                                                <div className="bg-slate-50 border border-slate-200 rounded-[12px] p-3 space-y-2">
+                                                    <div className="relative">
+                                                        <input 
+                                                            type="file" 
+                                                            id="policyDoc"
+                                                            className="hidden"
+                                                            onChange={(e) => handleOcrProcess(e.target.files[0])}
+                                                        />
+                                                        <label 
+                                                            htmlFor="policyDoc"
+                                                            className={`w-full flex flex-col items-center justify-center p-3 border-2 border-dashed rounded-md cursor-pointer transition-colors ${policyFile ? 'bg-green-50 border-green-300 text-green-700' : 'bg-white border-slate-300 text-slate-500 hover:bg-slate-50'}`}
+                                                        >
+                                                            {isOcrLoading ? (
+                                                                <div className="flex items-center space-x-2 animate-pulse">
+                                                                    <RefreshCw className="w-4 h-4 animate-spin" />
+                                                                    <span className="text-[10px] font-bold uppercase">Processing Policy...</span>
+                                                                </div>
+                                                            ) : (
+                                                                <>
+                                                                    <UploadCloud className="w-5 h-5 mb-1" />
+                                                                    <span className="text-[10px] font-bold uppercase">{policyFile ? policyFile.name : 'Upload Policy Image (Auto-Fill)'}</span>
+                                                                </>
+                                                            )}
+                                                        </label>
+                                                    </div>
+
+                                                    <div className="space-y-2">
+                                                        <input 
+                                                            type="text" 
+                                                            placeholder="Policy Name"
+                                                            className="w-full px-3 py-2 text-xs border border-slate-300 rounded-md"
+                                                            value={policyNameInput}
+                                                            onChange={(e) => setPolicyNameInput(e.target.value)}
+                                                        />
+                                                        <input 
+                                                            type="text" 
+                                                            placeholder="Policy ID"
+                                                            className="w-full px-3 py-2 text-xs border border-slate-300 rounded-md"
+                                                            value={policyIdInput}
+                                                            onChange={(e) => setPolicyIdInput(e.target.value)}
+                                                        />
+                                                        <div className="flex flex-col">
+                                                            <label className="text-[10px] font-bold text-slate-500 mb-1">Total Coverage (Margin Amount)</label>
+                                                            <input 
+                                                                type="number" 
+                                                                placeholder="Amount (e.g. 500000)"
+                                                                className="w-full px-3 py-2 text-xs border border-slate-300 rounded-md bg-white"
+                                                                value={policyAmountInput}
+                                                                onChange={(e) => setPolicyAmountInput(e.target.value)}
+                                                            />
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="flex space-x-2 pt-1">
+                                                        <button 
+                                                            onClick={handleAddPolicy} 
+                                                            disabled={uploading || isOcrLoading}
+                                                            className="flex-1 py-2 bg-[#0052CC] text-white text-[10px] font-bold rounded shadow-sm disabled:opacity-50"
+                                                        >
+                                                            {uploading ? 'SAVING...' : 'CONFIRM & SAVE'}
+                                                        </button>
+                                                        <button onClick={() => setIsAddingPolicy(false)} className="flex-1 py-2 bg-slate-100 text-slate-600 text-[10px] font-bold rounded">CANCEL</button>
+                                                    </div>
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
                                 </div>

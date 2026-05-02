@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const ClaimSchema = new mongoose.Schema({
     userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
     hospitalId: { type: mongoose.Schema.Types.ObjectId, ref: 'Hospital' },
+    policyId: { type: String },
     agentId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     documents: [{
         filename: String,
