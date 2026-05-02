@@ -172,3 +172,37 @@ body {
   0% { background-position: -200% 0; }
   100% { background-position: 200% 0; }
 }
+
+@keyframes logo-shine {
+  0% { transform: translateX(-100%) skewX(-15deg); }
+  50% { transform: translateX(100%) skewX(-15deg); }
+  100% { transform: translateX(100%) skewX(-15deg); }
+}
+
+.logo-container {
+  position: relative;
+  overflow: hidden;
+  border-radius: 12px;
+  display: inline-flex;
+}
+
+.logo-container::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(to right, transparent, rgba(255,255,255,0.4), transparent);
+  animation: logo-shine 4s infinite;
+}
+
+.logo-hover-effect {
+  transition: all 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transform-style: preserve-3d;
+}
+
+.logo-hover-effect:hover {
+  transform: rotateY(360deg) scale(1.15);
+  filter: drop-shadow(0 0 20px rgba(0, 82, 204, 0.5));
+}

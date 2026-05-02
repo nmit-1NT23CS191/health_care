@@ -42,10 +42,12 @@ const Login = () => {
     return (
         <div className="flex items-center justify-center min-h-screen mesh-gradient px-4">
             <div className="w-full max-w-md p-10 glass-card rounded-[32px] shadow-2xl animate-fade-in-up">
-                <div className="flex flex-col items-center mb-10">
-                    <img src={logo} alt="VeraClaim" className="w-28 h-28 mb-6 object-contain animate-float glow-blue" />
+                <div className="flex flex-col items-center mb-10 group">
+                    <div className="logo-container mb-6">
+                        <img src={logo} alt="VeraClaim" className="w-28 h-28 object-contain animate-float logo-hover-effect" />
+                    </div>
                     <h2 className="text-4xl font-black text-slate-900 font-['Manrope'] tracking-tighter gradient-text">VeraClaim AI</h2>
-                    <p className="text-slate-500 text-sm mt-1">{isLogin ? 'Sign in to manage your claims' : 'Create an account to get started'}</p>
+                    <p className="text-slate-500 font-bold mt-2 tracking-widest text-[10px] uppercase text-center">{isLogin ? 'Secure Intelligence Access' : 'Create Your Insurance Profile'}</p>
                 </div>
 
                 {error && <div className="mb-4 p-3 bg-red-50 text-red-600 rounded-[12px] text-sm text-center border border-red-100">{error}</div>}

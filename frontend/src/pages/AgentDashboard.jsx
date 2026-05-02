@@ -248,7 +248,9 @@ const AgentDashboard = () => {
             <div className="w-80 glass-card m-6 rounded-[32px] flex flex-col shadow-2xl animate-fade-in-up">
                 <div className="p-10">
                     <div className="flex items-center space-x-3 mb-10 group">
-                        <img src={logo} alt="VeraClaim" className="h-12 w-12 object-contain animate-float" />
+                        <div className="logo-container">
+                            <img src={logo} alt="VeraClaim" className="h-12 w-12 object-contain animate-float logo-hover-effect" />
+                        </div>
                         <h1 className="text-2xl font-black text-slate-900 tracking-tighter gradient-text">Agent Hub</h1>
                     </div>
                     
