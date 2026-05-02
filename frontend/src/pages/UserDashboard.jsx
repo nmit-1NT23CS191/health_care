@@ -31,6 +31,20 @@ const UserDashboard = () => {
         return { text: 'Good Evening', icon: '🌙' };
     };
 
+    const getSmartInsights = () => {
+        const policy = userPolicies[selectedPolicyIndex];
+        if (!policy) return [];
+        const remaining = policy.totalCover - policy.usedCover;
+        const usagePercent = (policy.usedCover / policy.totalCover) * 100;
+        
+        const insights = [];
+        if (usagePercent > 80) insights.push({ type: 'warning', text: 'You have used over 80% of your coverage. Consider top-up options.' });
+        if (remaining > 50000) insights.push({ type: 'info', text: 'You have significant unused coverage. Perfect time for a preventive health checkup!' });
+        if (claims.some(c => c.status === 'REJECTED')) insights.push({ type: 'tip', text: 'One of your claims was rejected. Use Vera AI to analyze why and re-submit.' });
+        
+        return insights.length > 0 ? insights : [{ type: 'info', text: 'Your policy is in optimal condition. Stay healthy!' }];
+    };
+
     useEffect(() => {
         localStorage.setItem('user_claim_step', step);
     }, [step]);
@@ -494,6 +508,47 @@ const UserDashboard = () => {
                                                     </div>
                                                 </div>
                                             )}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* AI Smart Insights */}
+                                <div className="bg-gradient-to-br from-slate-900 via-blue-900 to-[#0052CC] p-8 rounded-[32px] shadow-2xl text-white hover-3d relative overflow-hidden group animate-fade-in-up stagger-1.5 mb-8">
+                                    <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/20 rounded-full blur-3xl transform translate-x-20 -translate-y-20 group-hover:scale-150 transition-transform duration-1000"></div>
+                                    <div className="absolute -bottom-10 -left-10 w-40 h-40 bg-cyan-500/10 rounded-full blur-2xl"></div>
+                                    
+                                    <div className="relative z-10 grid grid-cols-1 md:grid-cols-3 gap-8">
+                                        <div className="md:col-span-2">
+                                            <h2 className="text-2xl font-black mb-6 flex items-center text-blue-300 tracking-tight">
+                                                <Activity className="w-7 h-7 mr-3 animate-pulse"/> Vera Smart Insights™
+                                            </h2>
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                                {getSmartInsights().map((insight, i) => (
+                                                    <div key={i} className="flex items-start space-x-4 bg-white/10 p-5 rounded-2xl border border-white/10 hover:bg-white/20 transition-all backdrop-blur-md">
+                                                        <div className={`mt-1.5 w-2.5 h-2.5 rounded-full shrink-0 shadow-[0_0_10px_rgba(255,255,255,0.5)] ${insight.type === 'warning' ? 'bg-amber-400' : insight.type === 'tip' ? 'bg-green-400' : 'bg-blue-400'}`}></div>
+                                                        <p className="text-sm font-bold leading-relaxed opacity-90">{insight.text}</p>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                        
+                                        <div className="bg-white/10 rounded-2xl p-6 border border-white/10 flex flex-col items-center justify-center text-center backdrop-blur-md">
+                                            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-blue-300 mb-2">Claim Health Score</p>
+                                            <div className="relative w-24 h-24 mb-4">
+                                                <svg className="w-full h-full transform -rotate-90">
+                                                    <circle cx="48" cy="48" r="42" stroke="rgba(255,255,255,0.1)" strokeWidth="8" fill="transparent" />
+                                                    <circle 
+                                                        cx="48" cy="48" r="42" stroke="currentColor" strokeWidth="8" fill="transparent" 
+                                                        strokeDasharray={263.8}
+                                                        strokeDashoffset={263.8 - (263.8 * 88) / 100}
+                                                        className="text-blue-400 transition-all duration-1000 ease-out"
+                                                    />
+                                                </svg>
+                                                <div className="absolute inset-0 flex items-center justify-center">
+                                                    <span className="text-2xl font-black">88</span>
+                                                </div>
+                                            </div>
+                                            <button className="text-[10px] font-black uppercase tracking-widest bg-blue-500 hover:bg-blue-400 px-4 py-2 rounded-full transition-all shadow-lg shadow-blue-500/30">Optimize Score</button>
                                         </div>
                                     </div>
                                 </div>
