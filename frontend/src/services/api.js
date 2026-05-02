@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-    baseURL: 'http://localhost:5001',
+    baseURL: 'http://localhost:5000',
 });
 
 api.interceptors.request.use(config => {
@@ -38,6 +38,11 @@ export const getPolicyOcr = async (formData) => {
     const res = await api.post('/auth/policy/ocr', formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
     });
+    return res.data;
+};
+
+export const verifyUserPolicy = async (policyNumber) => {
+    const res = await api.post('/auth/verify-policy', { policyNumber });
     return res.data;
 };
 

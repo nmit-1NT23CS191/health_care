@@ -7,6 +7,17 @@ const fs = require('fs');
 exports.createClaim = async (req, res) => {
     try {
         const { hospitalName, diagnosis, claimType, policyId } = req.body;
+
+        if (!policyId) return res.status(400).json({ message: 'Policy ID is required' });
+
+        // Validate policyId is linked to the requesting user
+        const user = await User.findById(req.user.id);
+        if (!user) return res.status(404).json({ message: 'User not found' });
+
+        const hasPolicy = user.policies && user.policies.some(p => String(p.policyId).trim() === String(policyId).trim());
+        if (!hasPolicy) {
+            return res.status(400).json({ message: 'Policy number invalid or not linked to this account' });
+        }
         
         let hospital = await Hospital.findOne({ name: new RegExp(hospitalName, 'i') });
         if (!hospital) {
@@ -36,7 +47,8 @@ exports.createClaim = async (req, res) => {
 
         await newClaim.save();
 
-        const user = await User.findById(req.user.id);
+        // update user's claims history (user was loaded earlier for policy validation)
+        user.claimsHistory = user.claimsHistory || [];
         user.claimsHistory.push(newClaim._id);
         await user.save();
 
