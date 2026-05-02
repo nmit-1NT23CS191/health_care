@@ -367,6 +367,12 @@ const UserDashboard = () => {
                                     <div>
                                         <p className="text-slate-400 font-bold uppercase tracking-widest text-[10px] mb-1">{getGreeting().icon} {getGreeting().text}</p>
                                         <h1 className="text-4xl font-black font-['Manrope'] gradient-text tracking-tight">{t('Dashboard', 'डैशबोर्ड')}</h1>
+                                        <button 
+                                            onClick={() => { loadUserProfile(); loadClaims(); }}
+                                            className="ml-4 p-2 text-slate-400 hover:text-[#0052CC] transition-all hover:rotate-180 duration-500"
+                                        >
+                                            <RefreshCw className="w-5 h-5" />
+                                        </button>
                                     </div>
                                     <button onClick={() => { resetForm(); setStep(1); }} className="px-6 py-4 bg-gradient-to-r from-[#0052CC] to-[#0EA5E9] text-white rounded-[20px] font-bold hover:shadow-xl hover:shadow-blue-500/30 transition-all hover:-translate-y-1 active:scale-95 shadow-lg shadow-blue-500/20">
                                         + {t('New Claim', 'नया दावा')}
@@ -620,25 +626,53 @@ const UserDashboard = () => {
                                         <div className="space-y-5">
                                             {claims.map((claim, idx) => (
                                                 <div key={claim._id} className={`bg-white p-7 rounded-[24px] border border-slate-200 flex flex-col shadow-sm hover-lift animate-fade-in-up stagger-${(idx % 3) + 1}`}>
-                                                    <div className="flex justify-between items-start">
+                                                    <div className="flex justify-between items-start mb-6">
                                                         <div>
-                                                            <p className="text-xs text-slate-500 uppercase tracking-wide font-semibold mb-1">
-                                                                {new Date(claim.createdAt).toLocaleDateString()}
-                                                            </p>
-                                                            <h3 className="font-bold text-slate-900 text-xl">{claim.ocrData?.hospitalName || 'Pending OCR'}</h3>
-                                                            <p className="text-slate-600 text-sm mt-1 flex items-center">
-                                                                <Search className="w-3 h-3 mr-1" /> {claim.claimType || 'Other'} • {claim.ocrData?.diagnosis || 'Pending'}
-                                                            </p>
+                                                            <div className="flex items-center space-x-3 mb-1">
+                                                                <span className="text-xl font-black text-slate-900 tracking-tight">{claim.ocrData?.hospitalName || claim.claimType}</span>
+                                                                <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${
+                                                                    claim.status === 'APPROVED' ? 'bg-green-100 text-green-700' : 
+                                                                    claim.status === 'REJECTED' ? 'bg-red-100 text-red-700' : 
+                                                                    'bg-amber-100 text-amber-700'
+                                                                }`}>
+                                                                    {claim.status}
+                                                                </span>
+                                                            </div>
+                                                            <p className="text-xs text-slate-400 font-bold tracking-widest uppercase">{claim.claimId} • {new Date(claim.createdAt).toLocaleDateString()}</p>
                                                         </div>
                                                         <div className="text-right">
-                                                            <p className="font-bold text-2xl text-[#0052CC] mb-2">₹{claim.approvedAmount || claim.ocrData?.billAmount || 0}</p>
-                                                            <span className={`inline-flex items-center space-x-1 px-3 py-1 rounded-full text-xs font-bold border ${claim.status === 'APPROVED' ? 'bg-green-50 text-green-700 border-green-200' : claim.status === 'REJECTED' ? 'bg-red-50 text-red-700 border-red-200' : 'bg-amber-50 text-amber-700 border-amber-200'}`}>
-                                                                {claim.status === 'APPROVED' ? <CheckCircle className="w-3 h-3" /> : claim.status === 'REJECTED' ? <ShieldAlert className="w-3 h-3" /> : <Clock className="w-3 h-3" />}
-                                                                <span>{claim.status.replace('_', ' ')}</span>
-                                                            </span>
+                                                            <p className="text-2xl font-black text-[#0052CC]">₹{(claim.approvedAmount || claim.ocrData?.billAmount || 0).toLocaleString()}</p>
+                                                            <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest mt-1">Settlement Amount</p>
                                                         </div>
                                                     </div>
-                                                    {renderProgressBar(claim.status)}
+
+                                                    {/* Claim Timeline */}
+                                                    <div className="relative pt-2 pl-2">
+                                                        <div className="absolute left-[15px] top-4 bottom-4 w-[2px] bg-slate-100"></div>
+                                                        <div className="space-y-6 relative z-10">
+                                                            <div className="flex items-center space-x-4">
+                                                                <div className="w-3.5 h-3.5 bg-green-500 rounded-full border-4 border-white shadow-sm ring-1 ring-green-500/20"></div>
+                                                                <div className="flex flex-col">
+                                                                    <span className="text-[11px] font-black text-slate-800 uppercase tracking-tight">Claim Submitted</span>
+                                                                    <span className="text-[9px] text-slate-400 font-medium">Successfully received by Vera Engine</span>
+                                                                </div>
+                                                            </div>
+                                                            <div className="flex items-center space-x-4">
+                                                                <div className={`w-3.5 h-3.5 rounded-full border-4 border-white shadow-sm ring-1 ring-blue-500/20 ${claim.status !== 'PENDING' ? 'bg-blue-500' : 'bg-slate-200 animate-pulse'}`}></div>
+                                                                <div className="flex flex-col">
+                                                                    <span className={`text-[11px] font-black uppercase tracking-tight ${claim.status !== 'PENDING' ? 'text-slate-800' : 'text-slate-400'}`}>AI Processing</span>
+                                                                    <span className="text-[9px] text-slate-400 font-medium">{claim.status !== 'PENDING' ? `VeraScore™: ${100 - (claim.riskScore || 0)}% Safety` : 'Vera AI is scanning documents...'}</span>
+                                                                </div>
+                                                            </div>
+                                                            <div className="flex items-center space-x-4">
+                                                                <div className={`w-3.5 h-3.5 rounded-full border-4 border-white shadow-sm ring-1 ring-slate-500/20 ${claim.status !== 'PENDING' ? (claim.status === 'APPROVED' ? 'bg-green-500' : 'bg-red-500') : 'bg-slate-200'}`}></div>
+                                                                <div className="flex flex-col">
+                                                                    <span className={`text-[11px] font-black uppercase tracking-tight ${claim.status !== 'PENDING' ? 'text-slate-800' : 'text-slate-400'}`}>Final Settlement</span>
+                                                                    <span className="text-[9px] text-slate-400 font-medium">{claim.status === 'PENDING' ? 'Waiting for final human audit' : `Status: ${claim.status}`}</span>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
                                                 </div>
                                             ))}
                                         </div>
