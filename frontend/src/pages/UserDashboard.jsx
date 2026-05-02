@@ -24,16 +24,6 @@ const UserDashboard = () => {
     const [currentClaimId, setCurrentClaimId] = useState(() => localStorage.getItem('user_current_claim_id'));
     const [files, setFiles] = useState([]);
 
-    const renderPlainLanguageError = (reason) => {
-        if (reason.includes('GST')) return "Hospital GST verification failed. This provider is not in our verified network.";
-        if (reason.includes('IMA')) return "Hospital is not registered with the Medical Registry (IMA/NHA).";
-        if (reason.includes('TAMPER')) return "Possible document tampering or image manipulation detected.";
-        if (reason.includes('RESOLUTION')) return "Image resolution is too low for reliable AI analysis.";
-        if (reason.includes('DUPLICATE')) return "This bill seems to have been submitted previously.";
-        if (reason.includes('Agent Note:')) return reason.replace('Agent Note:', 'Agent Message:');
-        return reason;
-    };
-
     useEffect(() => {
         localStorage.setItem('user_claim_step', step);
     }, [step]);
