@@ -24,6 +24,13 @@ const UserDashboard = () => {
     const [currentClaimId, setCurrentClaimId] = useState(() => localStorage.getItem('user_current_claim_id'));
     const [files, setFiles] = useState([]);
 
+    const getGreeting = () => {
+        const hour = new Date().getHours();
+        if (hour < 12) return { text: 'Good Morning', icon: '☀️' };
+        if (hour < 17) return { text: 'Good Afternoon', icon: '🌤️' };
+        return { text: 'Good Evening', icon: '🌙' };
+    };
+
     useEffect(() => {
         localStorage.setItem('user_claim_step', step);
     }, [step]);
@@ -320,11 +327,14 @@ const UserDashboard = () => {
                         {step === 0 && (
                             <div className="space-y-8 animate-fade-in">
                                 <div className="flex justify-between items-center animate-fade-in-up">
-                                    <h1 className="text-4xl font-black font-['Manrope'] gradient-text tracking-tight">{t('Dashboard', 'डैशबोर्ड')}</h1>
-                                    <button onClick={() => { resetForm(); setStep(1); }} className="px-6 py-3 bg-[#0052CC] text-white rounded-[14px] font-bold hover:bg-blue-800 transition-all hover:scale-105 shadow-lg shadow-blue-500/20 active:scale-95">
-                                        {t('Start New Claim', 'नया दावा शुरू करें')}
-                                    </button>
-                                </div>
+                                    <div>
+                                        <p className="text-slate-400 font-bold uppercase tracking-widest text-[10px] mb-1">{getGreeting().icon} {getGreeting().text}</p>
+                                        <h1 className="text-4xl font-black font-['Manrope'] gradient-text tracking-tight">{t('Dashboard', 'डैशबोर्ड')}</h1>
+                                    </div>
+                                    <button onClick={() => { resetForm(); setStep(1); }} className="px-6 py-4 bg-gradient-to-r from-[#0052CC] to-[#0EA5E9] text-white rounded-[20px] font-bold hover:shadow-xl hover:shadow-blue-500/30 transition-all hover:-translate-y-1 active:scale-95 shadow-lg shadow-blue-500/20">
+                                        + {t('New Claim', 'नया दावा')}
+                                     </button>
+                                 </div>
                                 
                                 {/* Eligibility & Cover Overview */}
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-fade-in-up stagger-1">
@@ -734,40 +744,50 @@ const UserDashboard = () => {
                                 </div>
 
                                 <div className="bg-white rounded-[16px] shadow-sm border border-slate-200 overflow-hidden mb-6">
-                                    <div className="p-6 bg-slate-900 text-white flex justify-between items-center">
-                                        <div>
-                                            <p className="text-sm text-slate-400 font-semibold mb-1">AI Approval Probability Score</p>
-                                            <div className="flex items-end">
-                                                <span className={`text-4xl font-bold mr-2 ${
-                                                    (processedClaim.riskScore ?? 50) < 40 ? 'text-green-400' 
-                                                    : (processedClaim.riskScore ?? 50) < 70 ? 'text-amber-400' 
-                                                    : 'text-red-400'
-                                                }`}>
-                                                    {processedClaim.riskScore !== undefined && processedClaim.riskScore !== null
-                                                        ? `${100 - processedClaim.riskScore}%`
-                                                        : 'N/A'}
-                                                </span>
-                                                <span className="text-slate-400 mb-1 font-medium">Likelihood</span>
+                                    <div className="p-8 bg-slate-900 text-white flex justify-between items-center relative overflow-hidden">
+                                        <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/10 rounded-full blur-3xl transform translate-x-20 -translate-y-20"></div>
+                                        <div className="flex items-center space-x-10 relative z-10">
+                                            {/* Circular Meter */}
+                                            <div className="relative w-32 h-32">
+                                                <svg className="w-full h-full transform -rotate-90">
+                                                    <circle cx="64" cy="64" r="58" stroke="currentColor" strokeWidth="12" fill="transparent" className="text-slate-800" />
+                                                    <circle 
+                                                        cx="64" cy="64" r="58" stroke="currentColor" strokeWidth="12" fill="transparent" 
+                                                        strokeDasharray={364.4}
+                                                        strokeDashoffset={364.4 - (364.4 * (100 - (processedClaim.riskScore || 0))) / 100}
+                                                        className={`transition-all duration-1000 ease-out ${
+                                                            (processedClaim.riskScore ?? 50) < 40 ? 'text-green-400' 
+                                                            : (processedClaim.riskScore ?? 50) < 70 ? 'text-amber-400' 
+                                                            : 'text-red-400'
+                                                        }`}
+                                                    />
+                                                </svg>
+                                                <div className="absolute inset-0 flex flex-col items-center justify-center">
+                                                    <span className="text-3xl font-black">{100 - (processedClaim.riskScore || 0)}%</span>
+                                                </div>
                                             </div>
-                                            {processedClaim.riskBand && (
-                                                <span className={`inline-block mt-2 text-xs font-bold px-2 py-0.5 rounded ${
-                                                    processedClaim.riskBand === 'LOW' ? 'bg-green-500 text-white'
-                                                    : processedClaim.riskBand === 'MEDIUM' ? 'bg-amber-500 text-white'
-                                                    : 'bg-red-500 text-white'
-                                                }`}>
-                                                    {processedClaim.riskBand} RISK
-                                                </span>
-                                            )}
+
+                                            <div>
+                                                <p className="text-xs text-slate-400 font-black uppercase tracking-widest mb-1">AI Approval Probability</p>
+                                                <h3 className="text-2xl font-black text-white">VeraScore™ Analysis</h3>
+                                                {processedClaim.riskBand && (
+                                                    <span className={`inline-block mt-3 text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-wider ${
+                                                        processedClaim.riskBand === 'LOW' ? 'bg-green-500 text-white shadow-lg shadow-green-500/30'
+                                                        : processedClaim.riskBand === 'MEDIUM' ? 'bg-amber-500 text-white shadow-lg shadow-amber-500/30'
+                                                        : 'bg-red-500 text-white shadow-lg shadow-red-500/30'
+                                                    }`}>
+                                                        {processedClaim.riskBand} RISK LEVEL
+                                                    </span>
+                                                )}
+                                            </div>
                                         </div>
-                                        <div className="text-right">
-                                            <p className="text-sm text-slate-400 font-semibold mb-1">Risk Score</p>
-                                            <p className="text-2xl font-bold text-white">
-                                                {processedClaim.riskScore !== undefined && processedClaim.riskScore !== null
-                                                    ? `${processedClaim.riskScore}/100`
-                                                    : 'N/A'}
-                                            </p>
-                                            <p className="text-sm text-slate-400 mt-1">Extracted Bill</p>
-                                            <p className="text-lg font-bold text-white">₹{processedClaim.ocrData?.billAmount || 0}</p>
+                                        <div className="text-right relative z-10">
+                                            <p className="text-xs text-slate-400 font-black uppercase tracking-widest mb-1">Risk Factor</p>
+                                            <p className="text-4xl font-black text-white">{processedClaim.riskScore || 0}<span className="text-lg text-slate-500">/100</span></p>
+                                            <div className="mt-4 pt-4 border-t border-slate-800">
+                                                <p className="text-[10px] text-slate-500 font-black uppercase tracking-widest">Bill Extracted</p>
+                                                <p className="text-xl font-black text-blue-400">₹{processedClaim.ocrData?.billAmount?.toLocaleString() || 0}</p>
+                                            </div>
                                         </div>
                                     </div>
                                     

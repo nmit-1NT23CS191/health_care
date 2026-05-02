@@ -24,10 +24,11 @@ const Navbar = ({ userName }) => {
                     <span>{language}</span>
                 </button>
                 
-                <div className="relative cursor-pointer text-slate-600 hover:text-[#0052CC] transition-colors group">
-                    <Bell className="w-5 h-5" />
-                    <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center border-2 border-white">
-                        2
+                <div className="relative cursor-pointer text-slate-600 hover:text-[#0052CC] transition-all group">
+                    <Bell className="w-5 h-5 group-hover:rotate-12 transition-transform" />
+                    <span className="absolute -top-1 -right-1 flex h-4 w-4">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#0052CC] opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-4 w-4 bg-[#0052CC] text-white text-[9px] font-black items-center justify-center border-2 border-white">2</span>
                     </span>
                     {/* Mock Notification Dropdown */}
                     <div className="absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-lg border border-slate-200 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
