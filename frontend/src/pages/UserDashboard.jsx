@@ -425,9 +425,9 @@ const UserDashboard = () => {
                                     {/* Secure Vault */}
                                     <div 
                                         onClick={() => setIsVaultOpen(true)}
-                                        className="bg-slate-50 p-7 rounded-[24px] border border-slate-200 border-dashed min-h-[180px] hover:border-blue-300 transition-colors flex flex-col group relative overflow-hidden cursor-pointer shadow-sm hover:shadow-lg"
+                                        className="bg-white p-7 rounded-[24px] border border-slate-200 shadow-sm min-h-[180px] flex flex-col group relative overflow-hidden cursor-pointer hover-3d"
                                     >
-                                        <div className="absolute -right-5 -bottom-5 opacity-5 group-hover:opacity-10 transition-opacity">
+                                        <div className="absolute -right-5 -bottom-5 opacity-5 group-hover:opacity-20 transition-opacity">
                                             <ShieldCheck className="w-32 h-32 text-blue-600" />
                                         </div>
                                         <h2 className="text-lg font-bold text-slate-800 mb-4 flex items-center">
