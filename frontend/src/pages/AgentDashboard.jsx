@@ -435,13 +435,13 @@ const AgentDashboard = () => {
                     <div className="flex-1 flex overflow-hidden">
                         {/* List Pane */}
                         <div className="w-1/3 bg-white border-r border-slate-200 overflow-y-auto">
-                            <div className="p-6 border-b border-slate-100 bg-slate-50 sticky top-0 flex justify-between items-center">
-                                <h2 className="text-lg font-bold text-slate-900 font-['Manrope']">{viewMode === 'claims' ? 'Pending Claims' : 'Pending Policies'}</h2>
-                                <span className="px-2.5 py-1 bg-[#0052CC] text-white text-xs font-bold rounded-full">{viewMode === 'claims' ? claims.length : policies.length}</span>
+                            <div className="p-6 border-b border-slate-100 bg-white sticky top-0 flex justify-between items-center z-20">
+                                <h2 className="text-xl font-black text-slate-900 font-['Manrope'] tracking-tight gradient-text">{viewMode === 'claims' ? 'Pending Claims' : 'Pending Policies'}</h2>
+                                <span className="px-3 py-1 bg-[#0052CC] text-white text-xs font-black rounded-full shadow-lg shadow-blue-500/20">{viewMode === 'claims' ? claims.length : policies.length}</span>
                             </div>
                             <div className="divide-y divide-slate-100">
-                                {viewMode === 'claims' ? claims.map(claim => (
-                                    <div key={claim._id} onClick={() => { setSelectedClaim(claim); setClaimAmount(claim.ocrData?.billAmount || ''); setDecisionError(''); }} className={`p-5 cursor-pointer transition-colors ${selectedClaim?._id === claim._id ? 'bg-blue-50 border-l-4 border-[#0052CC]' : 'hover:bg-slate-50 border-l-4 border-transparent'}`}>
+                                {viewMode === 'claims' ? claims.map((claim, idx) => (
+                                    <div key={claim._id} onClick={() => { setSelectedClaim(claim); setClaimAmount(claim.ocrData?.billAmount || ''); setDecisionError(''); }} className={`p-6 cursor-pointer transition-all animate-fade-in-up stagger-${(idx % 3) + 1} ${selectedClaim?._id === claim._id ? 'bg-blue-50 border-l-4 border-[#0052CC] shadow-inner' : 'hover:bg-slate-50 border-l-4 border-transparent hover:pl-7'}`}>
                                         <div className="flex justify-between items-start mb-2">
                                             <h3 className="font-semibold text-slate-900">{claim.userId?.name || 'Unknown'}</h3>
                                             <span className={`px-2 py-0.5 rounded text-xs font-bold ${claim.riskBand === 'HIGH' ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'}`}>{claim.riskBand} RISK</span>
@@ -473,7 +473,7 @@ const AgentDashboard = () => {
                                 selectedClaim ? (
                                     <div className="max-w-3xl mx-auto space-y-6">
                                         <div className="flex justify-between items-center mb-2">
-                                            <h2 className="text-2xl font-bold font-['Manrope'] text-slate-900">Claim Details</h2>
+                                            <h2 className="text-3xl font-black text-slate-900 tracking-tight gradient-text">Claim Analysis</h2>
                                             <span className="px-3 py-1 bg-white border border-slate-200 rounded-full text-xs font-semibold text-slate-600 shadow-sm">ID: {selectedClaim._id}</span>
                                         </div>
 

@@ -319,16 +319,16 @@ const UserDashboard = () => {
                         
                         {step === 0 && (
                             <div className="space-y-8 animate-fade-in">
-                                <div className="flex justify-between items-center">
-                                    <h1 className="text-3xl font-bold font-['Manrope'] text-slate-900">{t('Dashboard', 'डैशबोर्ड')}</h1>
-                                    <button onClick={() => { resetForm(); setStep(1); }} className="px-5 py-2.5 bg-[#0052CC] text-white rounded-[12px] font-semibold hover:bg-blue-800 transition-colors shadow-sm">
+                                <div className="flex justify-between items-center animate-fade-in-up">
+                                    <h1 className="text-4xl font-black font-['Manrope'] gradient-text tracking-tight">{t('Dashboard', 'डैशबोर्ड')}</h1>
+                                    <button onClick={() => { resetForm(); setStep(1); }} className="px-6 py-3 bg-[#0052CC] text-white rounded-[14px] font-bold hover:bg-blue-800 transition-all hover:scale-105 shadow-lg shadow-blue-500/20 active:scale-95">
                                         {t('Start New Claim', 'नया दावा शुरू करें')}
                                     </button>
                                 </div>
                                 
                                 {/* Eligibility & Cover Overview */}
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    <div className="bg-white p-6 rounded-[16px] border border-slate-200 shadow-sm min-h-[160px]">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-fade-in-up stagger-1">
+                                    <div className="bg-white p-7 rounded-[24px] border border-slate-200 shadow-sm min-h-[180px] hover-lift">
                                         <h2 className="text-lg font-bold text-slate-800 mb-4 flex items-center"><ShieldCheck className="w-5 h-5 mr-2 text-[#0052CC]"/> Eligibility & Cover Overview</h2>
                                         
                                         {selectedPolicyIndex >= 0 && userPolicies[selectedPolicyIndex] ? (
@@ -466,14 +466,17 @@ const UserDashboard = () => {
                                     </div>
                                 </div>
 
-                                <div>
-                                    <h2 className="text-xl font-bold text-slate-800 mb-4">{t('Claim History', 'दावा इतिहास')}</h2>
+                                <div className="animate-fade-in-up stagger-2">
+                                    <h2 className="text-2xl font-black text-slate-900 mb-6 flex items-center">
+                                        <History className="w-6 h-6 mr-3 text-[#0052CC]" />
+                                        {t('Claim History', 'दावा इतिहास')}
+                                    </h2>
                                     {claims.length === 0 ? (
-                                        <div className="text-slate-500 text-center py-16 bg-white rounded-[16px] border border-slate-200 shadow-sm">No claims found. Start by creating a new claim.</div>
+                                        <div className="text-slate-400 text-center py-20 bg-white rounded-[24px] border border-slate-200 shadow-sm italic">No claims found. Start by creating a new claim.</div>
                                     ) : (
-                                        <div className="space-y-4">
-                                            {claims.map(claim => (
-                                                <div key={claim._id} className="bg-white p-6 rounded-[16px] border border-slate-200 flex flex-col shadow-sm hover:shadow-md transition-shadow">
+                                        <div className="space-y-5">
+                                            {claims.map((claim, idx) => (
+                                                <div key={claim._id} className={`bg-white p-7 rounded-[24px] border border-slate-200 flex flex-col shadow-sm hover-lift animate-fade-in-up stagger-${(idx % 3) + 1}`}>
                                                     <div className="flex justify-between items-start">
                                                         <div>
                                                             <p className="text-xs text-slate-500 uppercase tracking-wide font-semibold mb-1">
@@ -688,11 +691,11 @@ const UserDashboard = () => {
                         )}
 
                         {step === 5 && (
-                            <div className="max-w-xl mx-auto bg-white p-12 rounded-[16px] shadow-sm border border-slate-200 text-center animate-fade-in mt-10">
-                                <div className="relative w-24 h-24 mx-auto mb-8">
-                                    <div className="absolute inset-0 border-4 border-slate-100 rounded-full"></div>
+                            <div className="max-w-xl mx-auto bg-white p-12 rounded-[32px] shadow-xl border border-slate-200 text-center animate-fade-in-up mt-10">
+                                <div className="relative w-28 h-28 mx-auto mb-8 shimmer rounded-full p-1 shadow-lg shadow-blue-500/10">
+                                    <div className="absolute inset-0 border-4 border-slate-50 rounded-full"></div>
                                     <div className="absolute inset-0 border-4 border-[#0052CC] rounded-full border-t-transparent animate-spin"></div>
-                                    <Activity className="absolute inset-0 m-auto w-10 h-10 text-[#0052CC] animate-pulse" />
+                                    <Activity className="absolute inset-0 m-auto w-12 h-12 text-[#0052CC] animate-pulse" />
                                 </div>
                                 <h2 className="text-2xl font-bold font-['Manrope'] mb-4 text-slate-900">Analyzing your claim...</h2>
                                 <div className="h-6">
