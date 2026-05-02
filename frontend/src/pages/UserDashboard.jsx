@@ -377,9 +377,18 @@ const UserDashboard = () => {
                                             <RefreshCw className="w-5 h-5" />
                                         </button>
                                     </div>
-                                    <button onClick={() => { resetForm(); setStep(1); }} className="px-6 py-4 bg-gradient-to-r from-[#0052CC] to-[#0EA5E9] text-white rounded-[20px] font-bold hover:shadow-xl hover:shadow-blue-500/30 transition-all hover:-translate-y-1 active:scale-95 shadow-lg shadow-blue-500/20">
-                                        + {t('New Claim', 'नया दावा')}
-                                     </button>
+                                    <div className="flex items-center space-x-4">
+                                        <button 
+                                            onClick={() => { setIsNetworkOpen(true); setNetworkSearch('Nearest'); }}
+                                            className="px-6 py-4 bg-red-50 text-red-600 border border-red-100 rounded-[20px] font-black uppercase tracking-widest text-[10px] hover:bg-red-600 hover:text-white transition-all shadow-lg shadow-red-500/10 flex items-center group"
+                                        >
+                                            <ShieldAlert className="w-4 h-4 mr-2 group-hover:animate-ping" />
+                                            Emergency SOS
+                                        </button>
+                                        <button onClick={() => { resetForm(); setStep(1); }} className="px-6 py-4 bg-gradient-to-r from-[#0052CC] to-[#0EA5E9] text-white rounded-[20px] font-bold hover:shadow-xl hover:shadow-blue-500/30 transition-all hover:-translate-y-1 active:scale-95 shadow-lg shadow-blue-500/20">
+                                            + {t('New Claim', 'नया दावा')}
+                                        </button>
+                                    </div>
                                  </div>
                                 
                                 {/* 4-Box Functionality Grid */}
@@ -1059,13 +1068,16 @@ const UserDashboard = () => {
                                     </div>
                                     <div className="space-y-3 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
                                         {[
-                                            { name: 'Apollo Health City', dist: '1.2 km', type: 'Super Specialty', color: 'blue' },
-                                            { name: 'Fortis Memorial', dist: '3.5 km', type: 'Multi-Specialty', color: 'emerald' },
-                                            { name: 'Manipal Hospital', dist: '5.1 km', type: 'General', color: 'cyan' },
-                                            { name: 'Max Super Speciality', dist: '6.8 km', type: 'Super Specialty', color: 'indigo' },
-                                            { name: 'Narayana Health', dist: '8.4 km', type: 'Cardiac Care', color: 'rose' }
+                                            { name: 'Apollo Health City', dist: '1.2 km', type: 'Super Specialty', color: 'blue', emergency: true },
+                                            { name: 'Fortis Memorial', dist: '3.5 km', type: 'Multi-Specialty', color: 'emerald', emergency: true },
+                                            { name: 'Manipal Hospital', dist: '5.1 km', type: 'General', color: 'cyan', emergency: false },
+                                            { name: 'Max Super Speciality', dist: '6.8 km', type: 'Super Specialty', color: 'indigo', emergency: true },
+                                            { name: 'Narayana Health', dist: '8.4 km', type: 'Cardiac Care', color: 'rose', emergency: true }
                                         ]
-                                        .filter(h => h.name.toLowerCase().includes(networkSearch.toLowerCase()))
+                                        .filter(h => {
+                                            if (networkSearch === 'Nearest') return h.emergency;
+                                            return h.name.toLowerCase().includes(networkSearch.toLowerCase());
+                                        })
                                         .map((h, i) => (
                                             <div 
                                                 key={i} 
