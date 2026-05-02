@@ -710,8 +710,17 @@ const UserDashboard = () => {
                         )}
 
                         {step === 6 && processedClaim && (
-                            <div className="max-w-3xl mx-auto animate-fade-in pb-10">
-                                <div className="text-center mb-8">
+                            <div className="max-w-3xl mx-auto animate-fade-in pb-10 relative overflow-hidden">
+                                {/* Confetti Rain */}
+                                <div className="confetti confetti-1"></div>
+                                <div className="confetti confetti-2"></div>
+                                <div className="confetti confetti-3"></div>
+                                <div className="confetti confetti-4"></div>
+                                <div className="confetti confetti-5"></div>
+                                <div className="confetti confetti-1" style={{animationDelay: '1.2s'}}></div>
+                                <div className="confetti confetti-3" style={{animationDelay: '1.5s'}}></div>
+                                
+                                <div className="text-center mb-8 relative z-10">
                                     <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-green-100 text-green-600 mb-4">
                                         <CheckCircle className="w-8 h-8" />
                                     </div>

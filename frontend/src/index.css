@@ -42,8 +42,8 @@ body {
 }
 
 .hover-lift:hover {
-  transform: translateY(-8px) scale(1.01);
-  box-shadow: 0 20px 40px -15px rgba(0, 82, 204, 0.12);
+  transform: translateY(-10px) scale(1.02) rotate(0.5deg);
+  box-shadow: 0 25px 50px -12px rgba(0, 82, 204, 0.2);
 }
 
 .bloom-shadow {
@@ -61,6 +61,26 @@ body {
 @keyframes shine {
   to { background-position: 200% center; }
 }
+@keyframes confetti-fall {
+  0% { transform: translateY(-100vh) rotate(0deg); opacity: 1; }
+  100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+}
+
+.confetti {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  background-color: #0052CC;
+  top: -10px;
+  z-index: 100;
+  animation: confetti-fall 4s linear forwards;
+}
+
+.confetti-1 { left: 10%; animation-delay: 0s; background-color: #38BDF8; }
+.confetti-2 { left: 30%; animation-delay: 0.5s; background-color: #0052CC; }
+.confetti-3 { left: 50%; animation-delay: 0.2s; background-color: #22D3EE; }
+.confetti-4 { left: 70%; animation-delay: 0.8s; background-color: #38BDF8; }
+.confetti-5 { left: 90%; animation-delay: 0.4s; background-color: #0052CC; }
 
 @keyframes float {
   0% { transform: translateY(0px); }
