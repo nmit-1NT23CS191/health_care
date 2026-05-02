@@ -63,6 +63,7 @@ const UserDashboard = () => {
     const [isAddingPolicy, setIsAddingPolicy] = useState(false);
     const [isVaultOpen, setIsVaultOpen] = useState(false);
     const [isNetworkOpen, setIsNetworkOpen] = useState(false);
+    const [isIdCardOpen, setIsIdCardOpen] = useState(false);
     const [networkSearch, setNetworkSearch] = useState('');
     const [selectedHospitalIndex, setSelectedHospitalIndex] = useState(0);
     const [policyNameInput, setPolicyNameInput] = useState('');
@@ -378,6 +379,13 @@ const UserDashboard = () => {
                                         </button>
                                     </div>
                                     <div className="flex items-center space-x-4">
+                                        <button 
+                                            onClick={() => setIsIdCardOpen(true)}
+                                            className="px-5 py-4 bg-slate-900 text-white rounded-[20px] hover:bg-slate-800 transition-all shadow-xl shadow-slate-900/20 group flex items-center space-x-2"
+                                        >
+                                            <CreditCard className="w-4 h-4 group-hover:rotate-12 transition-transform" />
+                                            <span className="text-[10px] font-black uppercase tracking-widest">Vera ID</span>
+                                        </button>
                                         <button 
                                             onClick={() => { setIsNetworkOpen(true); setNetworkSearch('Nearest'); }}
                                             className="px-6 py-4 bg-red-50 text-red-600 border border-red-100 rounded-[20px] font-black uppercase tracking-widest text-[10px] hover:bg-red-600 hover:text-white transition-all shadow-lg shadow-red-500/10 flex items-center group"
@@ -1061,6 +1069,68 @@ const UserDashboard = () => {
 
                     </div>
                 </div>
+                {/* Digital ID Modal */}
+                {isIdCardOpen && (
+                    <div className="fixed inset-0 z-[110] flex items-center justify-center p-6 backdrop-blur-xl bg-slate-900/40 animate-fade-in">
+                        <div className="w-full max-w-md relative animate-fade-in-up">
+                            <button 
+                                onClick={() => setIsIdCardOpen(false)}
+                                className="absolute -top-12 right-0 p-2 text-white hover:bg-white/10 rounded-full transition-colors"
+                            >
+                                <X className="w-6 h-6" />
+                            </button>
+
+                            <div className="bg-gradient-to-br from-slate-900 via-blue-900 to-[#0052CC] p-8 rounded-[32px] shadow-2xl text-white hover-3d relative overflow-hidden group border border-white/20 aspect-[1.58/1] flex flex-col justify-between">
+                                <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/20 rounded-full blur-3xl transform translate-x-20 -translate-y-20"></div>
+                                
+                                <div className="relative z-10 flex justify-between items-start">
+                                    <div>
+                                        <div className="flex items-center space-x-3 mb-6">
+                                            <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-lg">
+                                                <Activity className="w-6 h-6 text-blue-600" />
+                                            </div>
+                                            <span className="text-xl font-black tracking-tighter">VERA<span className="text-blue-400">ID</span></span>
+                                        </div>
+                                        <p className="text-[10px] font-black text-blue-300 uppercase tracking-[0.2em] mb-1">MEMBER NAME</p>
+                                        <h4 className="text-xl font-bold tracking-tight uppercase">{user.name}</h4>
+                                    </div>
+                                    <div className="text-right">
+                                        <div className="bg-white p-2 rounded-xl inline-block shadow-lg">
+                                            <div className="w-16 h-16 bg-slate-900 flex items-center justify-center text-[10px] font-black text-white text-center leading-tight">
+                                                VERA<br/>SCAN
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="relative z-10 grid grid-cols-2 gap-8 mt-auto pt-8 border-t border-white/10">
+                                    <div>
+                                        <p className="text-[9px] font-black text-blue-300 uppercase tracking-widest mb-1">MEMBER ID</p>
+                                        <p className="font-mono text-sm tracking-widest">VERA-4492-9921</p>
+                                    </div>
+                                    <div>
+                                        <p className="text-[9px] font-black text-blue-300 uppercase tracking-widest mb-1">VALID UNTIL</p>
+                                        <p className="font-mono text-sm tracking-widest">12 / 2028</p>
+                                    </div>
+                                </div>
+
+                                <div className="absolute -bottom-10 -right-10 opacity-10">
+                                    <ShieldCheck className="w-48 h-48" />
+                                </div>
+                            </div>
+
+                            <div className="mt-8 flex justify-center space-x-4">
+                                <button className="px-6 py-3 bg-white text-slate-900 rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-lg hover:bg-slate-50 transition-colors flex items-center">
+                                    <UploadCloud className="w-4 h-4 mr-2" /> Add to Apple Wallet
+                                </button>
+                                <button className="px-6 py-3 bg-white/10 text-white border border-white/20 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-white/20 transition-colors backdrop-blur-md">
+                                    Download PDF
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
                 {/* Network Hub Modal */}
                 {isNetworkOpen && (
                     <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 backdrop-blur-md bg-slate-900/60 animate-fade-in">
