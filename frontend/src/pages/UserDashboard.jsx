@@ -30,9 +30,7 @@ const UserDashboard = () => {
     const [isAddingPolicy, setIsAddingPolicy] = useState(false);
     const [policyNameInput, setPolicyNameInput] = useState('');
     const [policyIdInput, setPolicyIdInput] = useState('');
-    const [policyAmountInput, setPolicyAmountInput] = useState(500000);
     const [policyFile, setPolicyFile] = useState(null);
-    const [isOcrLoading, setIsOcrLoading] = useState(false);
     const [selectedPolicyIndex, setSelectedPolicyIndex] = useState(user.policies?.length > 0 ? 0 : -1);
 
     useEffect(() => {
@@ -66,33 +64,6 @@ const UserDashboard = () => {
         }
     };
 
-    const handleOcrProcess = async (file) => {
-        if (!file) return;
-        setPolicyFile(file);
-        setIsOcrLoading(true);
-        setError('');
-        
-        try {
-            const formData = new FormData();
-            formData.append('policyDoc', file);
-            const res = await getPolicyOcr(formData);
-            const { policyName, policyId, totalCover } = res.extractedData;
-            
-            // Pre-fill the form with extracted data
-            setPolicyNameInput(policyName || '');
-            setPolicyIdInput(policyId || '');
-            // We'll store the totalCover in a hidden state or just let the user edit it
-            // For this UI, let's add an amount field
-            setPolicyAmountInput(totalCover || 500000);
-        } catch (err) {
-            console.error('OCR failed', err);
-            setError('OCR failed to read document. Please enter details manually.');
-        } finally {
-            setIsOcrLoading(false);
-        }
-    };
-
-
     const handleAddPolicy = async () => {
         if (!policyNameInput || !policyIdInput) return setError('Please enter both Policy Name and ID');
         setUploading(true);
@@ -100,7 +71,6 @@ const UserDashboard = () => {
             const formData = new FormData();
             formData.append('name', policyNameInput);
             formData.append('policyId', policyIdInput);
-            formData.append('totalCover', policyAmountInput);
             if (policyFile) {
                 formData.append('policyDoc', policyFile);
             }
@@ -383,31 +353,6 @@ const UserDashboard = () => {
 
                                             {isAddingPolicy && (
                                                 <div className="bg-slate-50 border border-slate-200 rounded-[12px] p-3 space-y-2">
-                                                    <div className="relative">
-                                                        <input 
-                                                            type="file" 
-                                                            id="policyDoc"
-                                                            className="hidden"
-                                                            onChange={(e) => handleOcrProcess(e.target.files[0])}
-                                                        />
-                                                        <label 
-                                                            htmlFor="policyDoc"
-                                                            className={`w-full flex flex-col items-center justify-center p-3 border-2 border-dashed rounded-md cursor-pointer transition-colors ${policyFile ? 'bg-green-50 border-green-300 text-green-700' : 'bg-white border-slate-300 text-slate-500 hover:bg-slate-50'}`}
-                                                        >
-                                                            {isOcrLoading ? (
-                                                                <div className="flex items-center space-x-2 animate-pulse">
-                                                                    <RefreshCw className="w-4 h-4 animate-spin" />
-                                                                    <span className="text-[10px] font-bold uppercase">Processing Policy...</span>
-                                                                </div>
-                                                            ) : (
-                                                                <>
-                                                                    <UploadCloud className="w-5 h-5 mb-1" />
-                                                                    <span className="text-[10px] font-bold uppercase">{policyFile ? policyFile.name : 'Upload Policy Image (Auto-Fill)'}</span>
-                                                                </>
-                                                            )}
-                                                        </label>
-                                                    </div>
-
                                                     <div className="space-y-2">
                                                         <input 
                                                             type="text" 
@@ -423,22 +368,28 @@ const UserDashboard = () => {
                                                             value={policyIdInput}
                                                             onChange={(e) => setPolicyIdInput(e.target.value)}
                                                         />
-                                                        <div className="flex flex-col">
-                                                            <label className="text-[10px] font-bold text-slate-500 mb-1">Total Coverage (Margin Amount)</label>
-                                                            <input 
-                                                                type="number" 
-                                                                placeholder="Amount (e.g. 500000)"
-                                                                className="w-full px-3 py-2 text-xs border border-slate-300 rounded-md bg-white"
-                                                                value={policyAmountInput}
-                                                                onChange={(e) => setPolicyAmountInput(e.target.value)}
-                                                            />
-                                                        </div>
+                                                    </div>
+
+                                                    <div className="relative">
+                                                        <input 
+                                                            type="file" 
+                                                            id="policyDoc"
+                                                            className="hidden"
+                                                            onChange={(e) => setPolicyFile(e.target.files[0])}
+                                                        />
+                                                        <label 
+                                                            htmlFor="policyDoc"
+                                                            className={`w-full flex flex-col items-center justify-center p-3 border-2 border-dashed rounded-md cursor-pointer transition-colors ${policyFile ? 'bg-green-50 border-green-300 text-green-700' : 'bg-white border-slate-300 text-slate-500 hover:bg-slate-50'}`}
+                                                        >
+                                                            <UploadCloud className="w-5 h-5 mb-1" />
+                                                            <span className="text-[10px] font-bold uppercase">{policyFile ? policyFile.name : 'Upload Policy Document (Proof)'}</span>
+                                                        </label>
                                                     </div>
 
                                                     <div className="flex space-x-2 pt-1">
                                                         <button 
                                                             onClick={handleAddPolicy} 
-                                                            disabled={uploading || isOcrLoading}
+                                                            disabled={uploading}
                                                             className="flex-1 py-2 bg-[#0052CC] text-white text-[10px] font-bold rounded shadow-sm disabled:opacity-50"
                                                         >
                                                             {uploading ? 'SAVING...' : 'CONFIRM & SAVE'}

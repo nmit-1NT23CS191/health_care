@@ -79,30 +79,12 @@ exports.updatePolicy = async (req, res) => {
         let finalData = { 
             name: name || 'New Policy', 
             policyId: policyId || `POL-${Math.floor(Math.random()*10000)}`, 
-            totalCover: Number(totalCover) || 500000 
+            totalCover: 500000 // Fixed as per user request
         };
         let docUrl = '';
 
         if (req.file) {
-            try {
-                const text = await performOCR(req.file.path);
-                const parsed = parsePolicyText(text);
-                
-                // CRITICAL: Only use OCR if the user hasn't provided a value
-                finalData.name = name || parsed.policyName || finalData.name;
-                finalData.policyId = policyId || parsed.policyId || finalData.policyId;
-                
-                // For amount, we MUST prioritize user's manual edit if they provided one
-                if (totalCover && Number(totalCover) > 0) {
-                    finalData.totalCover = Number(totalCover);
-                } else if (parsed.totalCover && parsed.totalCover > 0) {
-                    finalData.totalCover = parsed.totalCover;
-                }
-                
-                docUrl = req.file.filename;
-            } catch (ocrErr) {
-                console.error('Policy OCR failed:', ocrErr);
-            }
+            docUrl = req.file.filename;
         }
 
         user.policies.push({ 

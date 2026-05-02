@@ -97,9 +97,6 @@ const parsePolicyText = (text) => {
     lines.forEach(line => {
         const lowerLine = line.toLowerCase();
         
-    lines.forEach(line => {
-        const lowerLine = line.toLowerCase();
-        
         // Improve Policy Name extraction
         if (lowerLine.includes('policy type') || lowerLine.includes('plan name') || lowerLine.includes('product')) {
             const parts = line.split(/[:\s\-]+/);
