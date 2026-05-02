@@ -62,6 +62,7 @@ const UserDashboard = () => {
     const [userPolicies, setUserPolicies] = useState(user.policies || []);
     const [isAddingPolicy, setIsAddingPolicy] = useState(false);
     const [isVaultOpen, setIsVaultOpen] = useState(false);
+    const [isNetworkOpen, setIsNetworkOpen] = useState(false);
     const [policyNameInput, setPolicyNameInput] = useState('');
     const [policyIdInput, setPolicyIdInput] = useState('');
     const [policyFile, setPolicyFile] = useState(null);
@@ -571,7 +572,10 @@ const UserDashboard = () => {
                                         </div>
                                     </div>
                                     {/* Network Hub */}
-                                    <div className="bg-white p-7 rounded-[24px] border border-slate-200 shadow-sm min-h-[180px] flex flex-col hover-3d relative overflow-hidden group cursor-pointer">
+                                    <div 
+                                        onClick={() => setIsNetworkOpen(true)}
+                                        className="bg-white p-7 rounded-[24px] border border-slate-200 shadow-sm min-h-[180px] flex flex-col hover-3d relative overflow-hidden group cursor-pointer"
+                                    >
                                         <div className="absolute -right-5 -bottom-5 opacity-5 group-hover:opacity-10 transition-opacity">
                                             <Activity className="w-32 h-32 text-blue-600" />
                                         </div>
@@ -1020,6 +1024,78 @@ const UserDashboard = () => {
 
                     </div>
                 </div>
+                {/* Network Hub Modal */}
+                {isNetworkOpen && (
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 backdrop-blur-md bg-slate-900/60 animate-fade-in">
+                        <div className="w-full max-w-4xl bg-white rounded-[32px] shadow-2xl overflow-hidden animate-fade-in-up">
+                            <div className="bg-slate-900 p-8 text-white flex justify-between items-center">
+                                <div className="flex items-center space-x-4">
+                                    <div className="w-12 h-12 bg-blue-600 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-500/20">
+                                        <Activity className="w-7 h-7" />
+                                    </div>
+                                    <div>
+                                        <h3 className="text-xl font-black tracking-tight">Vera Network Explorer™</h3>
+                                        <p className="text-[10px] font-black text-blue-400 uppercase tracking-widest">Real-Time Provider Directory • 24/7 Connectivity</p>
+                                    </div>
+                                </div>
+                                <button onClick={() => setIsNetworkOpen(false)} className="p-2 hover:bg-white/10 rounded-full transition-colors">
+                                    <X className="w-6 h-6" />
+                                </button>
+                            </div>
+                            
+                            <div className="grid grid-cols-1 lg:grid-cols-3 gap-0">
+                                <div className="p-8 lg:col-span-1 bg-slate-50 border-r border-slate-200">
+                                    <div className="relative mb-6">
+                                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                                        <input type="text" placeholder="Search hospitals..." className="w-full pl-11 pr-4 py-3 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20" />
+                                    </div>
+                                    <div className="space-y-3">
+                                        {[
+                                            { name: 'Apollo Health City', dist: '1.2 km', type: 'Super Specialty' },
+                                            { name: 'Fortis Memorial', dist: '3.5 km', type: 'Multi-Specialty' },
+                                            { name: 'Manipal Hospital', dist: '5.1 km', type: 'General' },
+                                            { name: 'Max Super Speciality', dist: '6.8 km', type: 'Super Specialty' }
+                                        ].map((h, i) => (
+                                            <div key={i} className="p-4 bg-white rounded-xl border border-slate-100 hover:border-blue-500 transition-all cursor-pointer group shadow-sm">
+                                                <div className="flex justify-between items-start mb-1">
+                                                    <h4 className="text-sm font-black text-slate-800">{h.name}</h4>
+                                                    <span className="text-[10px] font-black text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full">CASHLESS</span>
+                                                </div>
+                                                <p className="text-[10px] text-slate-500 font-medium">{h.type} • {h.dist}</p>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                                
+                                <div className="lg:col-span-2 p-8 flex flex-col items-center justify-center bg-slate-100 relative min-h-[400px]">
+                                    <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1526778548025-fa2f459cd5c1?q=80&w=2000')] bg-cover bg-center opacity-20 grayscale"></div>
+                                    <div className="relative z-10 flex flex-col items-center text-center">
+                                        <div className="w-20 h-20 bg-blue-600/10 rounded-full flex items-center justify-center mb-6 animate-pulse">
+                                            <Activity className="w-10 h-10 text-blue-600" />
+                                        </div>
+                                        <h4 className="text-2xl font-black text-slate-900 mb-2 tracking-tight">Interactive Map Active</h4>
+                                        <p className="text-sm text-slate-500 max-w-sm mb-8">Vera AI is currently tracking 1,200+ network providers in your region. Cashless approvals are active.</p>
+                                        <div className="flex space-x-4">
+                                            <button className="px-8 py-4 bg-blue-600 text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl shadow-blue-600/20 hover:scale-105 transition-transform">Get Directions</button>
+                                            <button className="px-8 py-4 bg-white text-slate-900 border border-slate-200 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-slate-50 transition-colors">Book OPD</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="p-6 bg-slate-900 border-t border-white/10 flex justify-between items-center text-white">
+                                <div className="flex items-center space-x-4">
+                                    <div className="flex -space-x-2">
+                                        {[1, 2, 3].map(i => <div key={i} className="w-8 h-8 rounded-full border-2 border-slate-900 bg-slate-700"></div>)}
+                                    </div>
+                                    <p className="text-[10px] font-black uppercase tracking-widest">45 Doctors Online Now</p>
+                                </div>
+                                <span className="text-[10px] font-black text-blue-400 uppercase tracking-widest">Vera Live Sync Enabled</span>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
                 {/* Secure Vault Modal */}
                 {isVaultOpen && (
                     <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 backdrop-blur-md bg-slate-900/60 animate-fade-in">
