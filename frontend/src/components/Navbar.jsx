@@ -7,10 +7,10 @@ const Navbar = ({ userName }) => {
     const { language, toggleLanguage, t } = useLanguage();
 
     return (
-        <div className="bg-white border-b border-slate-200 px-6 py-4 flex justify-between items-center sticky top-0 z-10 shadow-sm">
-            <div className="flex items-center space-x-3">
+        <div className="bg-white border-b border-slate-200 px-6 py-6 flex justify-between items-center sticky top-0 z-10 shadow-sm min-h-[100px]">
+            <div className="flex items-center space-x-4">
                 <div className="logo-container">
-                    <img src={logo} alt="VeraClaim" className="h-14 w-14 object-contain logo-hover-effect animate-float" />
+                    <img src={logo} alt="VeraClaim" className="h-20 w-20 object-contain logo-hover-effect animate-float" />
                 </div>
                 <span className="text-2xl font-black font-['Manrope'] text-slate-900 tracking-tight">
                     {t('VeraClaim AI', 'वेराक्लेम AI')}
