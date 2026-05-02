@@ -13,7 +13,8 @@ const UserSchema = new mongoose.Schema({
         policyId: { type: String },
         totalCover: { type: Number, default: 0 },
         usedCover: { type: Number, default: 0 },
-        documentUrl: { type: String }
+        documentUrl: { type: String },
+        status: { type: String, enum: ['PENDING', 'ACTIVE', 'REJECTED'], default: 'PENDING' }
     }],
     claimsHistory: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Claim' }]
 }, { timestamps: true });

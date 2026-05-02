@@ -73,4 +73,14 @@ export const agentDecision = async (claimId, decision, finalAmount, notes) => {
     return res.data;
 };
 
+export const getPendingPolicies = async () => {
+    const res = await api.get('/agent/policies/pending');
+    return res.data;
+};
+
+export const submitPolicyDecision = async (data) => {
+    const res = await api.post('/agent/policies/decision', data);
+    return res.data;
+};
+
 export default api;

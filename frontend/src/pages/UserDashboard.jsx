@@ -112,8 +112,11 @@ const UserDashboard = () => {
     const handleVerifyOTP = () => {
         if (auth.otp !== '1234') return setError('Invalid OTP. Use 1234 for demo.');
         
-        const policyExists = userPolicies.some(p => p.policyId === auth.policyNumber);
-        if (!policyExists) return setError('This policy ID is not linked to your account. Please link it first on the dashboard.');
+        const policy = userPolicies.find(p => p.policyId === auth.policyNumber);
+        if (!policy) return setError('This policy ID is not linked to your account. Please link it first on the dashboard.');
+        if (policy.status === 'PENDING') return setError('This policy is pending verification by an agent. You cannot file claims against it yet.');
+        if (policy.status === 'REJECTED') return setError('This policy document was rejected. Please upload a valid document.');
+
         
         setError('');
         setAuth({ ...auth, verified: true });
@@ -287,18 +290,32 @@ const UserDashboard = () => {
                                             <div className="space-y-4">
                                                 <div className="flex justify-between text-sm font-medium">
                                                     <span className="text-slate-500">Total Cover ({userPolicies[selectedPolicyIndex].name})</span>
-                                                    <span className="text-slate-900 font-bold">₹{userPolicies[selectedPolicyIndex].totalCover?.toLocaleString()}</span>
+                                                    <span className="text-slate-900 font-bold">
+                                                        {userPolicies[selectedPolicyIndex].status === 'PENDING' ? 'Pending Verification' : `₹${userPolicies[selectedPolicyIndex].totalCover?.toLocaleString()}`}
+                                                    </span>
                                                 </div>
-                                                <div className="w-full bg-slate-100 rounded-full h-3">
-                                                    <div 
-                                                        className="bg-[#0052CC] h-3 rounded-full transition-all duration-1000" 
-                                                        style={{ width: `${Math.min(100, (userPolicies[selectedPolicyIndex].usedCover / userPolicies[selectedPolicyIndex].totalCover) * 100 || 0)}%` }}
-                                                    ></div>
-                                                </div>
-                                                <div className="flex justify-between text-xs pt-1">
-                                                    <span className="text-slate-500">Used: ₹{userPolicies[selectedPolicyIndex].usedCover?.toLocaleString()}</span>
-                                                    <span className="font-bold text-green-600">Available: ₹{(userPolicies[selectedPolicyIndex].totalCover - userPolicies[selectedPolicyIndex].usedCover)?.toLocaleString()}</span>
-                                                </div>
+                                                {userPolicies[selectedPolicyIndex].status === 'PENDING' ? (
+                                                    <div className="w-full bg-amber-50 rounded-lg p-3 border border-amber-200">
+                                                        <p className="text-xs text-amber-700 font-medium">Your policy is currently under review by an agent. Claims cannot be filed until verification is complete.</p>
+                                                    </div>
+                                                ) : userPolicies[selectedPolicyIndex].status === 'REJECTED' ? (
+                                                    <div className="w-full bg-red-50 rounded-lg p-3 border border-red-200">
+                                                        <p className="text-xs text-red-700 font-medium">This policy document was rejected by verification agents. Please delete and upload a valid document.</p>
+                                                    </div>
+                                                ) : (
+                                                    <>
+                                                        <div className="w-full bg-slate-100 rounded-full h-3">
+                                                            <div 
+                                                                className="bg-[#0052CC] h-3 rounded-full transition-all duration-1000" 
+                                                                style={{ width: `${Math.min(100, (userPolicies[selectedPolicyIndex].usedCover / userPolicies[selectedPolicyIndex].totalCover) * 100 || 0)}%` }}
+                                                            ></div>
+                                                        </div>
+                                                        <div className="flex justify-between text-xs pt-1">
+                                                            <span className="text-slate-500">Used: ₹{userPolicies[selectedPolicyIndex].usedCover?.toLocaleString()}</span>
+                                                            <span className="font-bold text-green-600">Available: ₹{(userPolicies[selectedPolicyIndex].totalCover - userPolicies[selectedPolicyIndex].usedCover)?.toLocaleString()}</span>
+                                                        </div>
+                                                    </>
+                                                )}
                                             </div>
                                         ) : (
                                             <div className="h-24 flex items-center justify-center border border-dashed border-slate-200 rounded-lg">
@@ -310,7 +327,7 @@ const UserDashboard = () => {
                                     {/* Active Policies */}
                                     <div className="bg-white p-6 rounded-[16px] border border-slate-200 shadow-sm min-h-[160px] flex flex-col">
                                         <div className="flex justify-between items-center mb-4">
-                                            <h2 className="text-lg font-bold text-slate-800 flex items-center"><FileCheck className="w-5 h-5 mr-2 text-green-600"/> Active Policies</h2>
+                                            <h2 className="text-lg font-bold text-slate-800 flex items-center"><FileCheck className="w-5 h-5 mr-2 text-[#0052CC]"/> My Policies</h2>
                                             {userPolicies.length > 0 && !isAddingPolicy && (
                                                 <button onClick={() => setIsAddingPolicy(true)} className="text-[10px] font-bold text-[#0052CC] hover:underline">+ ADD MORE</button>
                                             )}
@@ -332,7 +349,9 @@ const UserDashboard = () => {
                                                         </button>
                                                         <div className="flex justify-between items-start mb-1 pr-6">
                                                             <span className="font-bold text-slate-900 text-sm">{p.name || 'Untitled Policy'}</span>
-                                                            <span className="px-2 py-0.5 bg-green-100 text-green-700 text-[10px] font-bold rounded">ACTIVE</span>
+                                                            <span className={`px-2 py-0.5 text-[10px] font-bold rounded ${p.status === 'ACTIVE' ? 'bg-green-100 text-green-700' : p.status === 'REJECTED' ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'}`}>
+                                                                {p.status || 'PENDING'}
+                                                            </span>
                                                         </div>
                                                         <p className="text-xs text-slate-500">ID: {p.policyId}</p>
                                                     </div>

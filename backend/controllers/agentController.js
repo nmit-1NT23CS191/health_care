@@ -89,3 +89,54 @@ exports.makeDecision = async (req, res) => {
         res.status(500).json({ message: 'Server Error' });
     }
 };
+
+exports.getAllPendingPolicies = async (req, res) => {
+    try {
+        const users = await User.find({ "policies.status": "PENDING" }, 'name phone email policies');
+        
+        let pendingPolicies = [];
+        users.forEach(user => {
+            user.policies.forEach(policy => {
+                if (policy.status === 'PENDING') {
+                    pendingPolicies.push({
+                        userId: user._id,
+                        userName: user.name,
+                        userPhone: user.phone,
+                        policy: policy
+                    });
+                }
+            });
+        });
+
+        res.status(200).json(pendingPolicies);
+    } catch (error) {
+        res.status(500).json({ message: 'Server Error' });
+    }
+};
+
+exports.decidePolicy = async (req, res) => {
+    try {
+        const { userId, policyId, decision, totalCover } = req.body;
+        // decision: 'ACTIVE', 'REJECTED'
+
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        const policyIndex = user.policies.findIndex(p => p._id.toString() === policyId);
+        if (policyIndex === -1) {
+            return res.status(404).json({ message: 'Policy not found' });
+        }
+
+        user.policies[policyIndex].status = decision;
+        if (decision === 'ACTIVE' && totalCover) {
+            user.policies[policyIndex].totalCover = Number(totalCover);
+        }
+
+        await user.save();
+        res.status(200).json({ message: 'Policy decision recorded successfully', policy: user.policies[policyIndex] });
+    } catch (error) {
+        res.status(500).json({ message: 'Server Error' });
+    }
+};

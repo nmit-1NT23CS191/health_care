@@ -1,19 +1,27 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getPendingClaims, agentDecision } from '../services/api';
-import { Users, FileText, AlertTriangle, LogOut, Check, X, Info, Activity, ShieldAlert, FileSignature } from 'lucide-react';
+import { getPendingClaims, agentDecision, getPendingPolicies, submitPolicyDecision } from '../services/api';
+import { Users, FileText, AlertTriangle, LogOut, Check, X, Info, Activity, ShieldAlert, FileSignature, ShieldCheck } from 'lucide-react';
 
 const AgentDashboard = () => {
+    const [viewMode, setViewMode] = useState('claims'); // 'claims' or 'policies'
     const [claims, setClaims] = useState([]);
     const [selectedClaim, setSelectedClaim] = useState(null);
+    const [policies, setPolicies] = useState([]);
+    const [selectedPolicy, setSelectedPolicy] = useState(null);
     const [notes, setNotes] = useState('');
+    const [policyAmount, setPolicyAmount] = useState('');
     const [loading, setLoading] = useState(false);
     const [decisionError, setDecisionError] = useState('');
     const navigate = useNavigate();
 
     useEffect(() => {
-        loadClaims();
-    }, []);
+        if (viewMode === 'claims') {
+            loadClaims();
+        } else {
+            loadPolicies();
+        }
+    }, [viewMode]);
 
     const loadClaims = async () => {
         try {
@@ -29,6 +37,19 @@ const AgentDashboard = () => {
         }
     };
 
+    const loadPolicies = async () => {
+        try {
+            const data = await getPendingPolicies();
+            setPolicies(data);
+            if (data.length > 0 && !selectedPolicy) {
+                setSelectedPolicy(data[0]);
+            } else if (data.length === 0) {
+                setSelectedPolicy(null);
+            }
+        } catch (err) {
+            console.error('Failed to load pending policies');
+        }
+    };
     const handleDecision = async (decision) => {
         if (!selectedClaim) return;
         if ((decision === 'REJECTED' || decision === 'REQUEST_INFO') && !notes.trim()) {
@@ -41,6 +62,31 @@ const AgentDashboard = () => {
             await agentDecision(selectedClaim._id, decision, selectedClaim.ocrData?.billAmount, notes);
             setNotes('');
             loadClaims();
+        } catch (err) {
+            console.error(err);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handlePolicyDecision = async (decision) => {
+        if (!selectedPolicy) return;
+        if (decision === 'ACTIVE' && (!policyAmount || isNaN(policyAmount) || Number(policyAmount) <= 0)) {
+            setDecisionError('Valid coverage amount is required to approve a policy');
+            return;
+        }
+        setDecisionError('');
+        setLoading(true);
+        try {
+            await submitPolicyDecision({
+                userId: selectedPolicy.userId,
+                policyId: selectedPolicy.policy._id,
+                decision: decision,
+                totalCover: policyAmount
+            });
+            setPolicyAmount('');
+            setSelectedPolicy(null);
+            loadPolicies();
         } catch (err) {
             console.error(err);
         } finally {
@@ -61,9 +107,19 @@ const AgentDashboard = () => {
                 <div className="p-6">
                     <h1 className="text-xl font-bold font-['Manrope'] mb-8 text-blue-400">Agent Portal</h1>
                     <div className="space-y-2">
-                        <button className="w-full flex items-center space-x-3 px-4 py-3 bg-blue-600 rounded-[12px] font-medium transition-colors">
-                            <Users className="w-5 h-5" />
-                            <span>Review Queue</span>
+                        <button 
+                            onClick={() => setViewMode('claims')}
+                            className={`w-full flex items-center space-x-3 px-4 py-3 rounded-[12px] font-medium transition-colors ${viewMode === 'claims' ? 'bg-blue-600' : 'hover:bg-slate-800'}`}
+                        >
+                            <FileText className="w-5 h-5" />
+                            <span>Pending Claims</span>
+                        </button>
+                        <button 
+                            onClick={() => setViewMode('policies')}
+                            className={`w-full flex items-center space-x-3 px-4 py-3 rounded-[12px] font-medium transition-colors ${viewMode === 'policies' ? 'bg-blue-600' : 'hover:bg-slate-800'}`}
+                        >
+                            <ShieldCheck className="w-5 h-5" />
+                            <span>Pending Policies</span>
                         </button>
                     </div>
                 </div>
@@ -100,16 +156,17 @@ const AgentDashboard = () => {
                 {/* List Pane */}
                 <div className="w-1/3 bg-white border-r border-slate-200 overflow-y-auto">
                     <div className="p-6 border-b border-slate-100 bg-slate-50 sticky top-0 flex justify-between items-center">
-                        <h2 className="text-lg font-bold text-slate-900 font-['Manrope']">Pending Reviews</h2>
-                        <span className="px-2.5 py-1 bg-[#0052CC] text-white text-xs font-bold rounded-full">{claims.length}</span>
+                        <h2 className="text-lg font-bold text-slate-900 font-['Manrope']">{viewMode === 'claims' ? 'Pending Claim Reviews' : 'Pending Policy Reviews'}</h2>
+                        <span className="px-2.5 py-1 bg-[#0052CC] text-white text-xs font-bold rounded-full">{viewMode === 'claims' ? claims.length : policies.length}</span>
                     </div>
                     <div className="divide-y divide-slate-100">
-                        {claims.map(claim => (
-                            <div 
-                                key={claim._id} 
-                                onClick={() => setSelectedClaim(claim)}
-                                className={`p-5 cursor-pointer transition-colors ${selectedClaim?._id === claim._id ? 'bg-blue-50 border-l-4 border-[#0052CC]' : 'hover:bg-slate-50 border-l-4 border-transparent'}`}
-                            >
+                        {viewMode === 'claims' ? (
+                            claims.map(claim => (
+                                <div 
+                                    key={claim._id} 
+                                    onClick={() => setSelectedClaim(claim)}
+                                    className={`p-5 cursor-pointer transition-colors ${selectedClaim?._id === claim._id ? 'bg-blue-50 border-l-4 border-[#0052CC]' : 'hover:bg-slate-50 border-l-4 border-transparent'}`}
+                                >
                                 <div className="flex justify-between items-start mb-2">
                                     <h3 className="font-semibold text-slate-900">{claim.userId?.name || 'Unknown Patient'}</h3>
                                     <span className={`px-2 py-0.5 rounded text-xs font-bold ${claim.riskBand === 'HIGH' ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'}`}>
@@ -121,15 +178,35 @@ const AgentDashboard = () => {
                                     <p className="text-sm font-semibold">₹{claim.ocrData?.billAmount}</p>
                                     <span className="text-xs text-slate-400">{new Date(claim.createdAt).toLocaleDateString()}</span>
                                 </div>
-                            </div>
-                        ))}
-                        {claims.length === 0 && <div className="p-8 text-center text-slate-500 text-sm">Queue is empty</div>}
+                                </div>
+                            ))
+                        ) : (
+                            policies.map(p => (
+                                <div 
+                                    key={p.policy._id} 
+                                    onClick={() => setSelectedPolicy(p)}
+                                    className={`p-5 cursor-pointer transition-colors ${selectedPolicy?.policy._id === p.policy._id ? 'bg-blue-50 border-l-4 border-[#0052CC]' : 'hover:bg-slate-50 border-l-4 border-transparent'}`}
+                                >
+                                    <div className="flex justify-between items-start mb-2">
+                                        <h3 className="font-semibold text-slate-900">{p.userName}</h3>
+                                        <span className="px-2 py-0.5 rounded text-xs font-bold bg-amber-100 text-amber-700">PENDING</span>
+                                    </div>
+                                    <p className="text-sm text-slate-600 truncate">{p.policy.name}</p>
+                                    <div className="flex justify-between items-center mt-2">
+                                        <p className="text-sm font-semibold text-slate-500">ID: {p.policy.policyId}</p>
+                                    </div>
+                                </div>
+                            ))
+                        )}
+                        {viewMode === 'claims' && claims.length === 0 && <div className="p-8 text-center text-slate-500 text-sm">No pending claims</div>}
+                        {viewMode === 'policies' && policies.length === 0 && <div className="p-8 text-center text-slate-500 text-sm">No pending policies</div>}
                     </div>
                 </div>
 
                 {/* Detail Pane */}
                 <div className="flex-1 bg-slate-50 overflow-y-auto p-8">
-                    {selectedClaim ? (
+                    {viewMode === 'claims' ? (
+                        selectedClaim ? (
                         <div className="max-w-3xl mx-auto space-y-6">
                             <div className="flex justify-between items-center mb-2">
                                 <h2 className="text-2xl font-bold font-['Manrope'] text-slate-900">Claim Details</h2>
@@ -280,9 +357,87 @@ const AgentDashboard = () => {
                                 </div>
                             </div>
                         </div>
+                    ) : viewMode === 'policies' ? (
+                        selectedPolicy ? (
+                            <div className="max-w-3xl mx-auto space-y-6">
+                                <div className="flex justify-between items-center mb-2">
+                                    <h2 className="text-2xl font-bold font-['Manrope'] text-slate-900">Policy Verification</h2>
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-6">
+                                    <div className="bg-white p-6 rounded-[16px] border border-slate-200 shadow-sm space-y-4">
+                                        <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-2 flex items-center"><Users className="w-4 h-4 mr-2"/> User Details</h3>
+                                        <div>
+                                            <p className="text-slate-500 mb-1 text-sm">Name</p>
+                                            <p className="font-medium text-slate-900">{selectedPolicy.userName}</p>
+                                        </div>
+                                        <div>
+                                            <p className="text-slate-500 mb-1 text-sm">Contact</p>
+                                            <p className="font-medium text-slate-900">{selectedPolicy.userPhone}</p>
+                                        </div>
+                                    </div>
+                                    
+                                    <div className="bg-white p-6 rounded-[16px] border border-slate-200 shadow-sm space-y-4">
+                                        <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-2 flex items-center"><FileText className="w-4 h-4 mr-2"/> Policy Information</h3>
+                                        <div>
+                                            <p className="text-slate-500 mb-1 text-sm">Policy Name</p>
+                                            <p className="font-medium text-slate-900">{selectedPolicy.policy.name}</p>
+                                        </div>
+                                        <div>
+                                            <p className="text-slate-500 mb-1 text-sm">Policy ID</p>
+                                            <p className="font-medium text-[#0052CC]">{selectedPolicy.policy.policyId}</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="bg-white p-6 rounded-[16px] border border-slate-200 shadow-sm">
+                                    <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4 flex items-center"><FileText className="w-4 h-4 mr-2"/> Document Proof</h3>
+                                    {selectedPolicy.policy.documentUrl ? (
+                                        <img src={`http://localhost:5001/uploads/${selectedPolicy.policy.documentUrl}`} alt="Policy Document" className="w-full max-h-96 object-contain border border-slate-200 rounded-lg" />
+                                    ) : (
+                                        <div className="h-48 flex items-center justify-center bg-slate-50 border border-slate-200 rounded-lg text-slate-400">No document uploaded</div>
+                                    )}
+                                </div>
+
+                                <div className="bg-white p-6 rounded-[16px] border border-slate-200 shadow-sm">
+                                    <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4 flex items-center"><FileSignature className="w-4 h-4 mr-2"/> Agent Decision</h3>
+                                    {decisionError && <p className="text-red-500 text-xs mb-2 font-semibold">{decisionError}</p>}
+                                    <div className="mb-4">
+                                        <label className="block text-sm font-semibold text-slate-700 mb-2">Total Coverage Amount (Verified from Document)</label>
+                                        <input 
+                                            type="number" 
+                                            placeholder="Enter exact coverage amount (e.g., 500000)"
+                                            className="w-full px-4 py-3 rounded-[12px] border border-slate-300 focus:outline-none focus:ring-2 focus:ring-[#0052CC]/20 focus:border-[#0052CC] text-sm"
+                                            value={policyAmount}
+                                            onChange={(e) => setPolicyAmount(e.target.value)}
+                                        />
+                                    </div>
+                                    <div className="flex space-x-4">
+                                        <button 
+                                            onClick={() => handlePolicyDecision('ACTIVE')}
+                                            disabled={loading}
+                                            className="flex-1 flex items-center justify-center py-3 bg-[#0052CC] text-white rounded-[12px] font-semibold hover:bg-blue-800 transition-colors disabled:opacity-50"
+                                        >
+                                            <Check className="w-5 h-5 mr-2" /> Approve & Activate Policy
+                                        </button>
+                                        <button 
+                                            onClick={() => handlePolicyDecision('REJECTED')}
+                                            disabled={loading}
+                                            className="flex-1 flex items-center justify-center py-3 bg-red-50 text-red-700 rounded-[12px] font-semibold hover:bg-red-100 transition-colors disabled:opacity-50 border border-red-200"
+                                        >
+                                            <X className="w-5 h-5 mr-2" /> Reject Document
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="h-full flex items-center justify-center text-slate-400 font-medium">
+                                Select a policy from the queue to verify
+                            </div>
+                        )
                     ) : (
                         <div className="h-full flex items-center justify-center text-slate-400 font-medium">
-                            Select a claim from the queue to review
+                            Select an item from the queue to review
                         </div>
                     )}
                 </div>

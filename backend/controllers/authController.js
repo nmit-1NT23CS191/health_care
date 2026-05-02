@@ -79,7 +79,8 @@ exports.updatePolicy = async (req, res) => {
         let finalData = { 
             name: name || 'New Policy', 
             policyId: policyId || `POL-${Math.floor(Math.random()*10000)}`, 
-            totalCover: 500000 // Fixed as per user request
+            totalCover: 0, // Agent will set this
+            status: 'PENDING'
         };
         let docUrl = '';
 
@@ -92,7 +93,8 @@ exports.updatePolicy = async (req, res) => {
             policyId: finalData.policyId,
             totalCover: finalData.totalCover,
             usedCover: 0,
-            documentUrl: docUrl
+            documentUrl: docUrl,
+            status: finalData.status
         });
 
         await user.save();
