@@ -76,30 +76,39 @@ exports.updatePolicy = async (req, res) => {
         
         if (!user) return res.status(404).json({ message: 'User not found' });
         
-        let extractedData = { totalCover: totalCover || 500000, policyName: name, policyId: policyId };
+        let finalData = { 
+            name: name || 'New Policy', 
+            policyId: policyId || `POL-${Math.floor(Math.random()*10000)}`, 
+            totalCover: Number(totalCover) || 500000 
+        };
         let docUrl = '';
 
         if (req.file) {
             try {
                 const text = await performOCR(req.file.path);
                 const parsed = parsePolicyText(text);
-                // Keep user-provided totalCover if it exists, otherwise use parsed
-                extractedData = { 
-                    ...extractedData, 
-                    policyName: name || parsed.policyName,
-                    policyId: policyId || parsed.policyId,
-                    totalCover: totalCover || parsed.totalCover || 500000
-                };
+                
+                // CRITICAL: Only use OCR if the user hasn't provided a value
+                finalData.name = name || parsed.policyName || finalData.name;
+                finalData.policyId = policyId || parsed.policyId || finalData.policyId;
+                
+                // For amount, we MUST prioritize user's manual edit if they provided one
+                if (totalCover && Number(totalCover) > 0) {
+                    finalData.totalCover = Number(totalCover);
+                } else if (parsed.totalCover && parsed.totalCover > 0) {
+                    finalData.totalCover = parsed.totalCover;
+                }
+                
                 docUrl = req.file.filename;
             } catch (ocrErr) {
-                console.error('Policy OCR failed, using defaults:', ocrErr);
+                console.error('Policy OCR failed:', ocrErr);
             }
         }
 
         user.policies.push({ 
-            name: extractedData.policyName, 
-            policyId: extractedData.policyId,
-            totalCover: extractedData.totalCover,
+            name: finalData.name, 
+            policyId: finalData.policyId,
+            totalCover: finalData.totalCover,
             usedCover: 0,
             documentUrl: docUrl
         });

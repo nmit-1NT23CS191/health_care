@@ -94,32 +94,43 @@ const parsePolicyText = (text) => {
     let policyId = '';
     let totalCover = 0;
 
-    for (const line of lines) {
+    lines.forEach(line => {
         const lowerLine = line.toLowerCase();
         
+        // Improve Policy Name extraction
         if (lowerLine.includes('policy name') || lowerLine.includes('plan name')) {
             const parts = line.split(/[:\s\-]+/);
-            policyName = parts.slice(1).join(' ');
+            if (parts.length > 1) policyName = parts.slice(1).join(' ').trim();
         }
 
-        if (lowerLine.includes('policy id') || lowerLine.includes('policy no') || lowerLine.includes('certificate no')) {
-            const idMatch = line.match(/[A-Z0-9\-]{5,}/i);
-            if (idMatch) policyId = idMatch[0];
-        }
-
-        if (lowerLine.includes('sum insured') || lowerLine.includes('total cover') || lowerLine.includes('limit') || lowerLine.includes('amount')) {
-            const numbers = line.match(/\d+([,]\d+)*(\.\d{1,2})?/g);
-            if (numbers && numbers.length > 0) {
-                const maxNum = Math.max(...numbers.map(n => parseFloat(n.replace(/,/g, ''))));
-                if (maxNum > totalCover && maxNum > 1000) totalCover = maxNum;
+        // Improve Policy ID extraction - ignore common words like 'Policy', 'Number'
+        if (lowerLine.includes('policy number') || lowerLine.includes('policy id') || lowerLine.includes('certificate no')) {
+            const matches = line.match(/[A-Z0-9\-]{8,}/i); // IDs are usually longer
+            if (matches) {
+                const found = matches[0];
+                if (!['POLICY', 'NUMBER', 'INSURED', 'HEALTH'].includes(found.toUpperCase())) {
+                    policyId = found;
+                }
             }
         }
-    }
+
+        // Improve Amount extraction
+        if (lowerLine.includes('sum insured') || lowerLine.includes('total cover') || lowerLine.includes('limit') || lowerLine.includes('balance')) {
+            const numbers = line.replace(/,/g, '').match(/\d+/g);
+            if (numbers) {
+                // Look for larger numbers (usually 5-7 digits for insurance)
+                const candidates = numbers.map(n => parseInt(n)).filter(n => n >= 50000);
+                if (candidates.length > 0) {
+                    totalCover = Math.max(...candidates);
+                }
+            }
+        }
+    });
 
     return { 
-        policyName: policyName || 'Parsed Policy', 
-        policyId: policyId || `POL-${Math.floor(Math.random()*10000)}`, 
-        totalCover: totalCover || 500000 // Default cover if extraction fails
+        policyName: policyName || '', 
+        policyId: policyId || '', 
+        totalCover: totalCover 
     };
 };
 
