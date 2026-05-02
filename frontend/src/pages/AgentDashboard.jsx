@@ -287,25 +287,39 @@ const AgentDashboard = () => {
                         <p className="text-sm font-bold text-slate-800">{analytics?.currentDate || '...'}</p>
                     </div>
                     <div className="flex items-center space-x-6">
-                        <div className="text-center">
-                            <p className="text-xs text-slate-500 font-bold uppercase">Approved Today</p>
-                            <p className="text-xl font-bold text-green-600">{analytics?.today?.approved ?? '—'}</p>
+                        {/* Expanding Search */}
+                        <div className="relative group">
+                            <input 
+                                type="text" 
+                                placeholder="Search claims, users, or policies..." 
+                                className="w-12 group-hover:w-80 h-12 bg-white/50 border border-slate-200 rounded-full pl-12 pr-4 outline-none transition-all duration-500 focus:w-80 focus:ring-2 focus:ring-[#0052CC]/20 placeholder:text-slate-400 text-sm font-medium"
+                            />
+                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 group-hover:text-[#0052CC] transition-colors" />
                         </div>
-                        <div className="text-center">
-                            <p className="text-xs text-slate-500 font-bold uppercase">Rejected Today</p>
-                            <p className="text-xl font-bold text-red-500">{analytics?.today?.rejected ?? '—'}</p>
-                        </div>
-                        <div className="text-center">
-                            <p className="text-xs text-slate-500 font-bold uppercase">Queue</p>
-                            <p className="text-xl font-bold text-amber-500">{analytics?.today?.pending ?? '—'}</p>
-                        </div>
-                        <span className="flex items-center space-x-1.5 px-3 py-1 bg-green-100 text-green-800 text-xs font-bold rounded-full">
-                            <span className="relative flex h-2 w-2">
-                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-500 opacity-75"></span>
-                                <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+                        
+                        <div className="h-10 w-[1px] bg-slate-200"></div>
+
+                        <div className="flex items-center space-x-6">
+                            <div className="text-center">
+                                <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest">Approved Today</p>
+                                <p className="text-xl font-black text-green-600">
+                                    {analytics ? <CountUp end={analytics?.today?.approved || 0} /> : '—'}
+                                </p>
+                            </div>
+                            <div className="text-center">
+                                <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest">Rejected Today</p>
+                                <p className="text-xl font-black text-red-500">
+                                    {analytics ? <CountUp end={analytics?.today?.rejected || 0} /> : '—'}
+                                </p>
+                            </div>
+                            <span className="flex items-center space-x-2 px-4 py-2 bg-green-100 text-green-800 text-[10px] font-black rounded-full shadow-sm">
+                                <span className="relative flex h-2 w-2">
+                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-500 opacity-75"></span>
+                                    <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+                                </span>
+                                <span className="uppercase tracking-widest">System Live</span>
                             </span>
-                            <span>Live</span>
-                        </span>
+                        </div>
                     </div>
                 </div>
 
