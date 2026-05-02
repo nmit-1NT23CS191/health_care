@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getPendingClaims, agentDecision, getPendingPolicies, submitPolicyDecision, getAgentAnalytics, getClaimHistory } from '../services/api';
 import { Users, FileText, AlertTriangle, LogOut, Check, X, Info, Activity, ShieldAlert, FileSignature, ShieldCheck, BarChart2, TrendingUp, CalendarDays, Clock, History, Search, ArrowUpDown } from 'lucide-react';
+import logo from '../assets/veraclaim_icon.png';
 
 const AgentDashboard = () => {
     const [viewMode, setViewMode] = useState(() => localStorage.getItem('agent_view_mode') || 'analytics'); // 'analytics', 'claims', 'policies', 'history'
