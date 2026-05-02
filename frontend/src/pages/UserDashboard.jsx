@@ -379,10 +379,13 @@ const UserDashboard = () => {
                                      </button>
                                  </div>
                                 
-                                {/* Eligibility & Cover Overview */}
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-fade-in-up stagger-1">
-                                    <div className="bg-white p-7 rounded-[24px] border border-slate-200 shadow-sm min-h-[180px] hover-3d">
-                                        <h2 className="text-lg font-bold text-slate-800 mb-4 flex items-center"><ShieldCheck className="w-5 h-5 mr-2 text-[#0052CC]"/> Eligibility & Cover Overview</h2>
+                                {/* 4-Box Functionality Grid */}
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-fade-in-up stagger-1 mb-10">
+                                    <div className="bg-white p-7 rounded-[24px] border border-slate-200 shadow-sm min-h-[180px] hover-3d relative overflow-hidden">
+                                        <div className="absolute -right-6 -bottom-6 opacity-5">
+                                            <ShieldCheck className="w-32 h-32 text-[#0052CC]" />
+                                        </div>
+                                        <h2 className="text-lg font-bold text-slate-800 mb-4 flex items-center"><ShieldCheck className="w-5 h-5 mr-2 text-[#0052CC]"/> Eligibility & Cover</h2>
                                         
                                         {selectedPolicyIndex >= 0 && userPolicies[selectedPolicyIndex] ? (
                                             <div className="space-y-4">
@@ -565,6 +568,35 @@ const UserDashboard = () => {
                                                     </div>
                                                 </div>
                                             )}
+                                        </div>
+                                    </div>
+                                    {/* Network Hub */}
+                                    <div className="bg-white p-7 rounded-[24px] border border-slate-200 shadow-sm min-h-[180px] flex flex-col hover-3d relative overflow-hidden group cursor-pointer">
+                                        <div className="absolute -right-5 -bottom-5 opacity-5 group-hover:opacity-10 transition-opacity">
+                                            <Activity className="w-32 h-32 text-blue-600" />
+                                        </div>
+                                        <h2 className="text-lg font-bold text-slate-800 mb-4 flex items-center">
+                                            <Activity className="w-5 h-5 mr-2 text-blue-600"/> Network Hub™
+                                        </h2>
+                                        <div className="flex-1 space-y-3">
+                                            <div className="flex justify-between items-center bg-slate-50 p-3 rounded-xl border border-slate-100 hover:bg-blue-50 transition-colors">
+                                                <div className="flex items-center space-x-3">
+                                                    <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                                                    <span className="text-[11px] font-black text-slate-700 uppercase tracking-tight">Apollo Hospital</span>
+                                                </div>
+                                                <span className="text-[9px] font-black text-blue-600 uppercase tracking-widest bg-blue-100/50 px-2 py-0.5 rounded-full">Cashless</span>
+                                            </div>
+                                            <div className="flex justify-between items-center bg-slate-50 p-3 rounded-xl border border-slate-100 hover:bg-blue-50 transition-colors">
+                                                <div className="flex items-center space-x-3">
+                                                    <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                                                    <span className="text-[11px] font-black text-slate-700 uppercase tracking-tight">Fortis Care</span>
+                                                </div>
+                                                <span className="text-[9px] font-black text-blue-600 uppercase tracking-widest bg-blue-100/50 px-2 py-0.5 rounded-full">Cashless</span>
+                                            </div>
+                                        </div>
+                                        <div className="mt-4 pt-4 border-t border-slate-100 flex justify-between items-center">
+                                            <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.1em]">Network Active</span>
+                                            <button className="text-[10px] font-black text-blue-600 uppercase tracking-widest hover:underline">View All →</button>
                                         </div>
                                     </div>
                                 </div>
