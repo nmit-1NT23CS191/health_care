@@ -423,6 +423,32 @@ const UserDashboard = () => {
                                                                 style={{ width: `${Math.min(100, (userPolicies[selectedPolicyIndex].usedCover / userPolicies[selectedPolicyIndex].totalCover) * 100 || 0)}%` }}
                                                             ></div>
                                                         </div>
+                                                        
+                                                        {/* High-End Utilization Trend (SVG) */}
+                                                        <div className="h-16 w-full relative mt-4">
+                                                            <svg className="w-full h-full" preserveAspectRatio="none">
+                                                                <defs>
+                                                                    <linearGradient id="trendGradient" x1="0" y1="0" x2="0" y2="1">
+                                                                        <stop offset="0%" stopColor="#0052CC" stopOpacity="0.2" />
+                                                                        <stop offset="100%" stopColor="#0052CC" stopOpacity="0" />
+                                                                    </linearGradient>
+                                                                </defs>
+                                                                <path 
+                                                                    d="M0,64 L20,50 L40,55 L60,30 L80,45 L100,20 L120,40 L140,10 L160,35 L180,15 L200,45 L220,5 L240,30 L260,20 L280,50 L300,10 L320,40 L340,5 L360,30 L380,10 L400,64 Z" 
+                                                                    fill="url(#trendGradient)" 
+                                                                    className="animate-pulse"
+                                                                />
+                                                                <path 
+                                                                    d="M0,64 L20,50 L40,55 L60,30 L80,45 L100,20 L120,40 L140,10 L160,35 L180,15 L200,45 L220,5 L240,30 L260,20 L280,50 L300,10 L320,40 L340,5 L360,30 L380,10" 
+                                                                    fill="none" 
+                                                                    stroke="#0052CC" 
+                                                                    strokeWidth="2" 
+                                                                    strokeLinecap="round"
+                                                                />
+                                                            </svg>
+                                                            <div className="absolute top-0 left-0 bg-[#0052CC]/10 text-[#0052CC] text-[8px] font-black px-2 py-1 rounded-md uppercase tracking-widest">Live Trend</div>
+                                                        </div>
+
                                                         <div className="flex justify-between text-xs pt-1">
                                                             <span className="text-slate-500">Used: ₹{userPolicies[selectedPolicyIndex].usedCover?.toLocaleString()}</span>
                                                             <span className="font-bold text-green-600">Available: ₹{(userPolicies[selectedPolicyIndex].totalCover - userPolicies[selectedPolicyIndex].usedCover)?.toLocaleString()}</span>
