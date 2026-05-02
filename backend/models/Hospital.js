@@ -9,7 +9,11 @@ const HospitalSchema = new mongoose.Schema({
     verified: { type: Boolean, default: false },
     blacklisted: { type: Boolean, default: false },
     fraudFlags: { type: Number, default: 0 },
-    totalClaims: { type: Number, default: 0 }
+    totalClaims: { type: Number, default: 0 },
+    isGstVerified: { type: Boolean, default: false },
+    isImaRegistered: { type: Boolean, default: false },
+    medicalRegistryId: { type: String },
+    verifiedAt: { type: Date }
 }, { timestamps: true });
 
 module.exports = mongoose.model('Hospital', HospitalSchema);

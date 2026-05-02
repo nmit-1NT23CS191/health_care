@@ -22,20 +22,63 @@ exports.analyzeClaim = async (req, res) => {
         await claim.save();
 
         let ocrConfidence = 85;
-        if ((!claim.ocrData || !claim.ocrData.hospitalName) && claim.documents.length > 0) {
-            const rawText = await performOCR(claim.documents[0].path);
-            claim.ocrData = parseExtractedText(rawText);
-            claim.ocrData.confidenceScore = ocrConfidence;
+        let hospitalMismatch = false;
+        let extractedHospitals = [];
+
+        if (claim.documents.length > 0) {
+            for (let doc of claim.documents) {
+                const rawText = await performOCR(doc.path);
+                const parsed = parseExtractedText(rawText);
+                
+                if (parsed.hospitalName && parsed.hospitalName !== 'Unknown Hospital') {
+                    // Very simple extraction for hackathon
+                    extractedHospitals.push(parsed.hospitalName.toLowerCase().trim());
+                }
+
+                // Set primary OCR data from the first document
+                if (!claim.ocrData || !claim.ocrData.hospitalName) {
+                    claim.ocrData = parsed;
+                    claim.ocrData.confidenceScore = ocrConfidence;
+                }
+            }
+
+            // Check for mismatch
+            if (extractedHospitals.length > 1) {
+                const firstHosp = extractedHospitals[0];
+                for (let i = 1; i < extractedHospitals.length; i++) {
+                    if (extractedHospitals[i] !== firstHosp) {
+                        hospitalMismatch = true;
+                        break;
+                    }
+                }
+            }
         }
 
         if (claim.ocrData && claim.ocrData.diagnosis) {
             claim.nlpData = await extractMedicalEntities(claim.ocrData.diagnosis);
         }
         
-        const gstResult = hospital ? await verifyGST(hospital.gstNumber) : { registryMatch: false };
+        // --- External Verification Services ---
+        const { verifyMedicalRegistry } = require('../services/medicalRegistryService');
+
+        // GST Verification (uses hospital name to mock if needed)
+        const gstResult = hospital ? await verifyGST(hospital.gstNumber, hospital.name) : { registryMatch: false, legalName: null };
+        
+        // Medical Registry Verification (IMA/NHA)
+        const registryResult = hospital ? await verifyMedicalRegistry(hospital.name) : { isRegistered: false, registryType: 'Unverified' };
+        
         const admissionResult = hospital ? await simulateOTPVerification(hospital.phone) : { confirmed: false };
         const documentTamperingSignals = claim.documents.length > 0 ? await detectDocumentTampering(claim.documents[0].path) : [];
         const velocitySignals = await checkVelocity(user._id);
+
+        // Update Hospital Model with new verification info if available
+        if (hospital) {
+            hospital.isGstVerified = gstResult.registryMatch;
+            hospital.isImaRegistered = registryResult.isRegistered;
+            hospital.medicalRegistryId = registryResult.medicalRegistryId;
+            hospital.verifiedAt = new Date();
+            await hospital.save();
+        }
 
         claim.status = 'VERIFYING';
         await claim.save();
@@ -43,9 +86,12 @@ exports.analyzeClaim = async (req, res) => {
         const verificationResults = {
             ocrConfidence: claim.ocrData ? claim.ocrData.confidenceScore : 0,
             isGstValid: gstResult.registryMatch,
+            gstLegalName: gstResult.legalName,
+            registryStatus: registryResult.registryType,
             isAdmissionConfirmed: admissionResult.confirmed,
             documentTamperingSignals,
-            velocitySignals
+            velocitySignals,
+            hospitalMismatch
         };
 
         const riskResult = await calculateRisk(claim, user, hospital, verificationResults);

@@ -47,30 +47,39 @@ exports.createClaim = async (req, res) => {
 
 exports.uploadDocument = async (req, res) => {
     try {
-        if (!req.file) return res.status(400).json({ message: 'Please upload a file' });
+        if (!req.files || req.files.length === 0) return res.status(400).json({ message: 'Please upload files' });
         
         const claimId = req.params.id;
         const claim = await Claim.findById(claimId);
         if (!claim) return res.status(404).json({ message: 'Claim not found' });
 
-        const fileBuffer = fs.readFileSync(req.file.path);
-        const hashSum = crypto.createHash('sha256');
-        hashSum.update(fileBuffer);
-        const fileHash = hashSum.digest('hex');
+        let hasDuplicate = false;
 
-        const duplicate = await Claim.findOne({ 'documents.hash': fileHash });
-        if (duplicate && duplicate._id.toString() !== claimId) {
-            return res.status(400).json({ message: 'Duplicate document detected' });
+        for (const file of req.files) {
+            const fileBuffer = fs.readFileSync(file.path);
+            const hashSum = crypto.createHash('sha256');
+            hashSum.update(fileBuffer);
+            const fileHash = hashSum.digest('hex');
+
+            const duplicate = await Claim.findOne({ 'documents.hash': fileHash });
+            if (duplicate && duplicate._id.toString() !== claimId) {
+                hasDuplicate = true;
+                continue; // Skip duplicate file
+            }
+
+            claim.documents.push({
+                filename: file.filename,
+                path: file.path,
+                hash: fileHash
+            });
         }
 
-        claim.documents.push({
-            filename: req.file.filename,
-            path: req.file.path,
-            hash: fileHash
-        });
+        if (claim.documents.length === 0 && hasDuplicate) {
+             return res.status(400).json({ message: 'All uploaded documents were duplicates' });
+        }
 
         await claim.save();
-        res.status(200).json({ message: 'Document uploaded', claim });
+        res.status(200).json({ message: 'Documents uploaded', claim });
     } catch (error) {
         res.status(500).json({ message: 'Upload error', error: error.message });
     }

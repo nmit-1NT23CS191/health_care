@@ -5,10 +5,19 @@ const calculateRisk = async (claimData, user, hospital, verificationResults) => 
     const {
         ocrConfidence = 85,
         isGstValid = true,
+        gstLegalName = null,
+        registryStatus = 'Unverified',
         isAdmissionConfirmed = true,
         documentTamperingSignals = [],
-        velocitySignals = []
+        velocitySignals = [],
+        hospitalMismatch = false
     } = verificationResults || {};
+
+    // 0. Hospital Match (New 30%)
+    if (hospitalMismatch) {
+        score += 30;
+        breakdown.push('Documents appear to be from different hospitals. Please update correct documents. (+30)');
+    }
 
     // 1. Document Consistency (25%)
     if (documentTamperingSignals && documentTamperingSignals.length > 0) {
@@ -18,15 +27,25 @@ const calculateRisk = async (claimData, user, hospital, verificationResults) => 
         breakdown.push('Documents are consistent and show no tampering (+0)');
     }
 
-    // 2. GST / e-Invoice valid (20%)
+    // 2. GST Verification (30%)
     if (!isGstValid) {
-        score += 20;
-        breakdown.push('Hospital GST is invalid or missing from registry (+20)');
+        score += 30;
+        breakdown.push('Hospital GST is invalid, inactive, or missing (+30)');
     } else {
-        breakdown.push('Hospital GST matches registry (+0)');
+        score -= 5;
+        breakdown.push(`Hospital GST verified and Active (Legal Name: ${gstLegalName || 'Matched'}) (-5)`);
     }
 
-    // 3. Admission Confirmed (25%)
+    // 3. Medical Registry Verification (IMA/NHA)
+    if (registryStatus === 'Unverified') {
+        score += 10;
+        breakdown.push('Hospital is not listed in NHA or IMA registry (+10)');
+    } else {
+        score -= 10;
+        breakdown.push(`Hospital verified in medical registry (${registryStatus}) (-10)`);
+    }
+
+    // 4. Admission Confirmed (15%)
     if (!isAdmissionConfirmed) {
         score += 25;
         breakdown.push('Live admission could not be verified via OTP (+25)');

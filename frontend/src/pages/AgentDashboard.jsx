@@ -138,18 +138,18 @@ const AgentDashboard = () => {
                                 </span>
                             </div>
 
-                            <div className="grid grid-cols-2 gap-6">
+                            <div className="grid grid-cols-3 gap-6">
                                 {/* OCR & NLP Data */}
                                 <div className="bg-white p-6 rounded-[16px] border border-slate-200 shadow-sm">
-                                    <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4 flex items-center"><FileText className="w-4 h-4 mr-2"/> OCR & NLP Extracted Data</h3>
+                                    <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4 flex items-center"><FileText className="w-4 h-4 mr-2"/> OCR & NLP Data</h3>
                                     <div className="space-y-4 text-sm">
                                         <div>
                                             <p className="text-slate-500 mb-1">Hospital (OCR)</p>
                                             <p className="font-medium text-slate-900">{selectedClaim.ocrData?.hospitalName}</p>
                                         </div>
                                         <div>
-                                            <p className="text-slate-500 mb-1">Diagnosis (NLP extracted)</p>
-                                            <p className="font-medium text-slate-900">{selectedClaim.ocrData?.diagnosis} <span className="text-xs text-slate-400 ml-2">[{selectedClaim.nlpData?.extractedDiagnosisCode}]</span></p>
+                                            <p className="text-slate-500 mb-1">Diagnosis (NLP)</p>
+                                            <p className="font-medium text-slate-900">{selectedClaim.ocrData?.diagnosis}</p>
                                         </div>
                                         <div className="grid grid-cols-2 gap-4">
                                             <div>
@@ -157,7 +157,7 @@ const AgentDashboard = () => {
                                                 <p className="font-bold text-slate-900 text-lg">₹{selectedClaim.ocrData?.billAmount}</p>
                                             </div>
                                             <div>
-                                                <p className="text-slate-500 mb-1">OCR Confidence</p>
+                                                <p className="text-slate-500 mb-1">Confidence</p>
                                                 <p className="font-medium text-slate-900">{selectedClaim.ocrData?.confidenceScore}%</p>
                                             </div>
                                         </div>
@@ -183,6 +183,37 @@ const AgentDashboard = () => {
                                         <div className="pt-3 border-t border-slate-100">
                                             <p className="text-slate-500 mb-1">Verified Policy ID</p>
                                             <p className="font-medium text-[#0052CC]">POL-492810-AB</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Hospital Verification */}
+                                <div className="bg-white p-6 rounded-[16px] border border-slate-200 shadow-sm">
+                                    <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4 flex items-center"><Activity className="w-4 h-4 mr-2"/> Hospital Auth</h3>
+                                    <div className="space-y-4 text-sm">
+                                        <div>
+                                            <p className="text-slate-500 mb-1">GST Verification</p>
+                                            {selectedClaim.hospitalId?.isGstVerified ? (
+                                                <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-bold bg-green-100 text-green-700">VERIFIED</span>
+                                            ) : (
+                                                <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-bold bg-red-100 text-red-700">INVALID</span>
+                                            )}
+                                        </div>
+                                        <div>
+                                            <p className="text-slate-500 mb-1">Medical Registry (IMA/NHA)</p>
+                                            {selectedClaim.hospitalId?.isImaRegistered ? (
+                                                <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-bold bg-green-100 text-green-700">
+                                                    {selectedClaim.hospitalId?.medicalRegistryId ? `Registered (${selectedClaim.hospitalId.medicalRegistryId})` : 'Registered'}
+                                                </span>
+                                            ) : (
+                                                <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-bold bg-amber-100 text-amber-700">UNVERIFIED</span>
+                                            )}
+                                        </div>
+                                        <div>
+                                            <p className="text-slate-500 mb-1">Fetched Legal Name (GST)</p>
+                                            <p className="font-medium text-slate-900 italic">
+                                                {selectedClaim.hospitalId?.isGstVerified ? selectedClaim.hospitalId?.name : 'N/A'}
+                                            </p>
                                         </div>
                                     </div>
                                 </div>

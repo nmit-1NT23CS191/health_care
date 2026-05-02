@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getUserClaims, createClaim, uploadClaimDocument, triggerAiAnalysis } from '../services/api';
-import { UploadCloud, FileText, Activity, LogOut, CheckCircle, Clock, Search, ShieldAlert, ArrowRight, ShieldCheck, FileCheck, CheckSquare, RefreshCw } from 'lucide-react';
+import { UploadCloud, FileText, Activity, LogOut, CheckCircle, Clock, Search, ShieldAlert, ArrowRight, ShieldCheck, FileCheck, CheckSquare, RefreshCw, X } from 'lucide-react';
 import Navbar from '../components/Navbar';
 import { useLanguage } from '../context/LanguageContext';
 
@@ -16,7 +16,7 @@ const UserDashboard = () => {
     const [hospitalName, setHospitalName] = useState('');
     const [diagnosis, setDiagnosis] = useState('');
     const [currentClaimId, setCurrentClaimId] = useState(null);
-    const [file, setFile] = useState(null);
+    const [files, setFiles] = useState([]);
     
     // UI States
     const [uploading, setUploading] = useState(false);
@@ -84,15 +84,18 @@ const UserDashboard = () => {
 
     const handleLoadDemoData = () => {
         const demoFile = new File(["dummy content"], "demo_hospital_bill.pdf", { type: "application/pdf" });
-        setFile(demoFile);
+        const demoFile2 = new File(["dummy content 2"], "demo_lab_report.pdf", { type: "application/pdf" });
+        setFiles([demoFile, demoFile2]);
     };
 
     const handleFileUpload = async () => {
-        if (!file || !currentClaimId) return setError('Please select a file');
+        if (files.length === 0 || !currentClaimId) return setError('Please select files');
         setUploading(true);
         setError('');
         const formData = new FormData();
-        formData.append('document', file);
+        files.forEach(file => {
+            formData.append('documents', file);
+        });
 
         try {
             await uploadClaimDocument(currentClaimId, formData);
@@ -142,7 +145,7 @@ const UserDashboard = () => {
         setClaimType('');
         setHospitalName('');
         setDiagnosis('');
-        setFile(null);
+        setFiles([]);
         setCurrentClaimId(null);
         setProcessedClaim(null);
         setError('');
@@ -413,21 +416,37 @@ const UserDashboard = () => {
                                 
                                 {error && <div className="mb-4 p-3 bg-red-50 text-red-600 rounded-[12px] text-sm font-medium">{error}</div>}
                                 
-                                <label className="flex flex-col items-center justify-center h-48 border-2 border-dashed border-slate-300 rounded-[16px] cursor-pointer hover:border-[#0052CC] hover:bg-blue-50 transition-colors mb-4 relative overflow-hidden group">
-                                    {file ? (
-                                        <div className="text-center">
-                                            <FileCheck className="w-10 h-10 text-green-500 mx-auto mb-2" />
-                                            <span className="text-sm font-bold text-slate-800">{file.name}</span>
+                                <div>
+                                    <label className={`flex flex-col items-center justify-center border-2 border-dashed border-slate-300 rounded-[16px] cursor-pointer hover:border-[#0052CC] hover:bg-blue-50 transition-colors mb-4 relative overflow-hidden group ${files.length > 0 ? 'h-32' : 'h-48'}`}>
+                                        <UploadCloud className={`text-[#0052CC] mb-2 group-hover:scale-110 transition-transform ${files.length > 0 ? 'w-8 h-8' : 'w-10 h-10'}`} />
+                                        <span className="text-sm text-slate-600 font-semibold mb-1">{files.length > 0 ? 'Upload more files' : 'Click to browse or drag and drop'}</span>
+                                        <span className="text-xs text-slate-400">PNG, JPG, PDF up to 10MB</span>
+                                        <input type="file" multiple className="hidden" onChange={(e) => setFiles([...files, ...Array.from(e.target.files)])} accept="image/*,.pdf" />
+                                    </label>
+
+                                    {files.length > 0 && (
+                                        <div className="bg-slate-50 border border-slate-200 rounded-[12px] p-4 mb-4 max-h-48 overflow-y-auto">
+                                            <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Selected Files ({files.length})</h4>
+                                            <ul className="space-y-2">
+                                                {files.map((f, idx) => (
+                                                    <li key={idx} className="flex items-center justify-between bg-white p-3 rounded-[8px] border border-slate-100 shadow-sm">
+                                                        <div className="flex items-center overflow-hidden">
+                                                            <FileCheck className="w-5 h-5 text-green-500 mr-3 shrink-0" />
+                                                            <span className="text-sm font-medium text-slate-700 truncate">{f.name}</span>
+                                                        </div>
+                                                        <button 
+                                                            onClick={() => setFiles(files.filter((_, i) => i !== idx))}
+                                                            className="text-red-400 hover:text-red-600 ml-3"
+                                                            title="Remove file"
+                                                        >
+                                                            <X className="w-4 h-4" />
+                                                        </button>
+                                                    </li>
+                                                ))}
+                                            </ul>
                                         </div>
-                                    ) : (
-                                        <>
-                                            <UploadCloud className="w-10 h-10 text-[#0052CC] mb-3 group-hover:scale-110 transition-transform" />
-                                            <span className="text-sm text-slate-600 font-semibold mb-1">Click to browse or drag and drop</span>
-                                            <span className="text-xs text-slate-400">PNG, JPG, PDF up to 10MB</span>
-                                        </>
                                     )}
-                                    <input type="file" className="hidden" onChange={(e) => setFile(e.target.files[0])} accept="image/*,.pdf" />
-                                </label>
+                                </div>
                                 
                                 <div className="flex justify-center mb-8">
                                     <button onClick={handleLoadDemoData} className="text-xs font-semibold text-[#0052CC] hover:underline bg-blue-50 px-3 py-1.5 rounded-full border border-blue-100">
@@ -437,7 +456,7 @@ const UserDashboard = () => {
                                 
                                 <button 
                                     onClick={handleFileUpload}
-                                    disabled={!file || uploading}
+                                    disabled={files.length === 0 || uploading}
                                     className="w-full flex items-center justify-center py-3.5 bg-[#0052CC] text-white rounded-[12px] font-semibold hover:bg-blue-800 transition-colors disabled:opacity-50 shadow-sm"
                                 >
                                     {uploading ? 'Uploading...' : 'Submit & Run AI Analysis'}

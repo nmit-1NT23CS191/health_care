@@ -15,7 +15,7 @@ const storage = multer.diskStorage({
 const upload = multer({ storage });
 
 router.post('/create', authMiddleware, createClaim);
-router.post('/:id/upload', authMiddleware, upload.single('document'), uploadDocument);
+router.post('/:id/upload', authMiddleware, upload.array('documents', 10), uploadDocument);
 router.get('/patient/:userId', authMiddleware, getUserClaims); 
 router.get('/:id/status', authMiddleware, getClaimStatus);
 router.get('/:id', authMiddleware, getClaimById);
