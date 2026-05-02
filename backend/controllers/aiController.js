@@ -27,22 +27,32 @@ exports.analyzeClaim = async (req, res) => {
 
         if (claim.documents.length > 0) {
             for (let doc of claim.documents) {
-                const rawText = await performOCR(doc.path);
-                const parsed = parseExtractedText(rawText);
-                
-                if (parsed.hospitalName && parsed.hospitalName !== 'Unknown Hospital') {
-                    // Very simple extraction for hackathon
-                    extractedHospitals.push(parsed.hospitalName.toLowerCase().trim());
-                }
+                try {
+                    const rawText = await performOCR(doc.path);
+                    const parsed = parseExtractedText(rawText);
+                    
+                    if (parsed.hospitalName && parsed.hospitalName !== 'Unknown Hospital') {
+                        extractedHospitals.push(parsed.hospitalName.toLowerCase().trim());
+                    }
 
-                // Set primary OCR data from the first document
-                if (!claim.ocrData || !claim.ocrData.hospitalName) {
-                    claim.ocrData = parsed;
-                    claim.ocrData.confidenceScore = ocrConfidence;
+                    if (!claim.ocrData || !claim.ocrData.hospitalName) {
+                        claim.ocrData = parsed;
+                        claim.ocrData.confidenceScore = ocrConfidence;
+                    }
+                } catch (ocrErr) {
+                    console.warn(`OCR failed for document ${doc.path}:`, ocrErr.message);
+                    // Fall back to manually entered data
+                    if (!claim.ocrData || !claim.ocrData.hospitalName) {
+                        claim.ocrData = {
+                            hospitalName: claim.ocrData?.hospitalName || 'Unknown',
+                            diagnosis: claim.ocrData?.diagnosis || 'Unknown',
+                            billAmount: 0,
+                            confidenceScore: 0
+                        };
+                    }
                 }
             }
 
-            // Check for mismatch
             if (extractedHospitals.length > 1) {
                 const firstHosp = extractedHospitals[0];
                 for (let i = 1; i < extractedHospitals.length; i++) {
@@ -95,6 +105,7 @@ exports.analyzeClaim = async (req, res) => {
         };
 
         const riskResult = await calculateRisk(claim, user, hospital, verificationResults);
+        console.log(`Risk Analysis for Claim ${claimId}: Score=${riskResult.score}, Band=${riskResult.riskBand}`);
 
         claim.riskScore = riskResult.score;
         claim.riskBand = riskResult.riskBand;

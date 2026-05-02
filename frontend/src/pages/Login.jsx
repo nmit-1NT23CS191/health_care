@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { loginUser, registerUser } from '../services/api';
-import { ShieldCheck } from 'lucide-react';
+import logo from '../assets/veraclaim_icon.png';
 
 const Login = () => {
     const [isLogin, setIsLogin] = useState(true);
@@ -42,10 +42,8 @@ const Login = () => {
         <div className="flex items-center justify-center min-h-screen bg-slate-100">
             <div className="w-full max-w-md p-8 bg-white rounded-[12px] shadow-[0_10px_40px_-10px_rgba(0,82,204,0.1)] border border-slate-200">
                 <div className="flex flex-col items-center mb-8">
-                    <div className="p-3 bg-blue-50 rounded-full mb-4">
-                        <ShieldCheck className="w-8 h-8 text-[#0052CC]" />
-                    </div>
-                    <h2 className="text-2xl font-bold text-slate-900 font-['Manrope']">MedFin Elite</h2>
+                    <img src={logo} alt="VeraClaim" className="w-20 h-20 mb-3 object-contain" />
+                    <h2 className="text-3xl font-black text-slate-900 font-['Manrope'] tracking-tighter">VeraClaim AI</h2>
                     <p className="text-slate-500 text-sm mt-1">{isLogin ? 'Sign in to manage your claims' : 'Create an account to get started'}</p>
                 </div>
 

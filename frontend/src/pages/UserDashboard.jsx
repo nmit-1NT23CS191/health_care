@@ -8,7 +8,10 @@ import { useLanguage } from '../context/LanguageContext';
 const UserDashboard = () => {
     const { t } = useLanguage();
     const [claims, setClaims] = useState([]);
-    const [step, setStep] = useState(0); // 0: List, 1: Auth Gate, 2: Claim Type, 3: Hospital, 4: Upload, 5: Processing, 6: Results
+    const [step, setStep] = useState(() => {
+        const saved = localStorage.getItem('user_claim_step');
+        return saved !== null ? parseInt(saved) : 0;
+    }); // 0: List, 1: Auth Gate, 2: Claim Type, 3: Hospital, 4: Upload, 5: Processing, 6: Results
     
     const [user, setUser] = useState(JSON.parse(localStorage.getItem('user') || '{}'));
     const navigate = useNavigate();
@@ -18,8 +21,17 @@ const UserDashboard = () => {
     const [claimType, setClaimType] = useState('');
     const [hospitalName, setHospitalName] = useState('');
     const [diagnosis, setDiagnosis] = useState('');
-    const [currentClaimId, setCurrentClaimId] = useState(null);
+    const [currentClaimId, setCurrentClaimId] = useState(() => localStorage.getItem('user_current_claim_id'));
     const [files, setFiles] = useState([]);
+
+    useEffect(() => {
+        localStorage.setItem('user_claim_step', step);
+    }, [step]);
+
+    useEffect(() => {
+        if (currentClaimId) localStorage.setItem('user_current_claim_id', currentClaimId);
+        else localStorage.removeItem('user_current_claim_id');
+    }, [currentClaimId]);
     
     // UI States
     const [uploading, setUploading] = useState(false);
@@ -40,6 +52,12 @@ const UserDashboard = () => {
         }
         loadUserProfile();
         loadClaims();
+
+        // Poll every 5 seconds so agent-approved policies reflect instantly
+        const interval = setInterval(() => {
+            loadUserProfile();
+        }, 5000);
+        return () => clearInterval(interval);
     }, []);
 
     const loadUserProfile = async () => {
@@ -48,6 +66,10 @@ const UserDashboard = () => {
             setUser(data);
             setUserPolicies(data.policies || []);
             localStorage.setItem('user', JSON.stringify(data));
+            // Auto-select first policy if none selected yet
+            if (data.policies?.length > 0) {
+                setSelectedPolicyIndex(prev => prev === -1 ? 0 : prev);
+            }
         } catch (err) {
             console.error('Failed to load user profile');
         }
@@ -122,7 +144,8 @@ const UserDashboard = () => {
     };
 
     const handleVerifyOTP = () => {
-        if (auth.otp !== '1234') return setError('Invalid OTP. Use 1234 for demo.');
+        const birthYear = auth.dob ? new Date(auth.dob).getFullYear().toString() : '';
+        if (auth.otp !== birthYear) return setError('Invalid OTP. Please try again.');
         
         const policy = userPolicies.find(p => p.policyId === auth.policyNumber);
         if (!policy) return setError('This policy ID is not linked to your account. Please link it first on the dashboard.');
@@ -186,7 +209,6 @@ const UserDashboard = () => {
     };
 
     const runAiAnalysis = async (claimId) => {
-        // Simulate Processing Stages
         const stages = [
             'Extracting text via OCR...',
             'Matching Entities (spaCy NLP)...',
@@ -210,6 +232,23 @@ const UserDashboard = () => {
         } finally {
             setUploading(false);
         }
+    };
+
+    const renderPlainLanguageError = (reason) => {
+        if (!reason) return reason;
+        const map = {
+            'HIGH_VELOCITY': 'Too many claims filed in a short period — possible abuse detected.',
+            'DOCUMENT_TAMPERING': 'Document metadata shows signs of tampering or editing.',
+            'HOSPITAL_MISMATCH': 'Hospital names across uploaded documents do not match.',
+            'LOW_OCR_CONFIDENCE': 'Document image quality is poor — text could not be extracted clearly.',
+            'GST_INVALID': 'Hospital GST registration could not be verified.',
+            'REGISTRY_UNVERIFIED': 'Hospital is not listed in IMA/NHA medical registry.',
+            'ADMISSION_UNCONFIRMED': 'Hospital admission could not be independently confirmed.',
+        };
+        for (const key in map) {
+            if (reason.toUpperCase().includes(key)) return map[key];
+        }
+        return reason;
     };
 
     const handleLogout = () => {
@@ -244,12 +283,6 @@ const UserDashboard = () => {
         );
     };
 
-    const renderPlainLanguageError = (reason) => {
-        if (reason.includes('Tampering')) return 'We detected possible alterations in the uploaded document. Please upload an original clear copy.';
-        if (reason.includes('GST')) return 'The hospital GST number could not be verified in the national registry.';
-        if (reason.includes('Velocity')) return 'Multiple claims have been filed from this account recently. This requires manual review.';
-        return reason;
-    };
 
     return (
         <div className="flex h-screen bg-slate-50 flex-col">
@@ -488,6 +521,7 @@ const UserDashboard = () => {
                                                 type="text" 
                                                 value={auth.policyNumber}
                                                 onChange={e => setAuth({...auth, policyNumber: e.target.value})}
+                                                onKeyDown={(e) => e.key === 'Enter' && handleSendOTP()}
                                                 className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-[12px] focus:outline-none focus:ring-2 focus:ring-[#0052CC]/20 focus:border-[#0052CC]"
                                                 placeholder="e.g. POL-12345"
                                             />
@@ -498,6 +532,7 @@ const UserDashboard = () => {
                                                 type="date" 
                                                 value={auth.dob}
                                                 onChange={e => setAuth({...auth, dob: e.target.value})}
+                                                onKeyDown={(e) => e.key === 'Enter' && handleSendOTP()}
                                                 className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-[12px] focus:outline-none focus:ring-2 focus:ring-[#0052CC]/20 focus:border-[#0052CC]"
                                             />
                                         </div>
@@ -513,10 +548,11 @@ const UserDashboard = () => {
                                             maxLength="4"
                                             value={auth.otp}
                                             onChange={e => setAuth({...auth, otp: e.target.value})}
+                                            onKeyDown={(e) => e.key === 'Enter' && handleVerifyOTP()}
                                             className="w-32 px-4 py-3 text-center text-2xl tracking-widest bg-slate-50 border border-slate-200 rounded-[12px] focus:outline-none focus:ring-2 focus:ring-[#0052CC]/20 focus:border-[#0052CC] mx-auto block"
                                             placeholder="••••"
+                                            autoFocus
                                         />
-                                        <p className="text-xs text-slate-400 mt-2">Hint: Use 1234 for hackathon demo</p>
                                         <button onClick={handleVerifyOTP} className="w-full py-3.5 bg-[#0052CC] text-white rounded-[12px] font-semibold hover:bg-blue-800 transition-colors mt-6">
                                             Verify & Proceed
                                         </button>
@@ -532,7 +568,7 @@ const UserDashboard = () => {
                                 
                                 <div className="space-y-3 mb-8">
                                     {['Accident', 'Surgery', 'Chronic Illness', 'General Consultation'].map(type => (
-                                        <label key={type} className={`flex items-center p-4 border rounded-[12px] cursor-pointer transition-colors ${claimType === type ? 'border-[#0052CC] bg-blue-50/50' : 'border-slate-200 hover:bg-slate-50'}`}>
+                                        <label key={type} onKeyDown={(e) => e.key === 'Enter' && setStep(3)} tabIndex="0" className={`flex items-center p-4 border rounded-[12px] cursor-pointer transition-colors ${claimType === type ? 'border-[#0052CC] bg-blue-50/50' : 'border-slate-200 hover:bg-slate-50'}`}>
                                             <input type="radio" name="claimType" className="w-4 h-4 text-[#0052CC] focus:ring-[#0052CC]" checked={claimType === type} onChange={() => setClaimType(type)} />
                                             <span className="ml-3 font-medium text-slate-800">{type}</span>
                                         </label>
@@ -568,6 +604,7 @@ const UserDashboard = () => {
                                             type="text" 
                                             value={hospitalName}
                                             onChange={(e) => setHospitalName(e.target.value)}
+                                            onKeyDown={(e) => e.key === 'Enter' && handleCreateDraft()}
                                             className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-[12px] focus:outline-none focus:ring-2 focus:ring-[#0052CC]/20 focus:border-[#0052CC] transition-all"
                                             placeholder="e.g. Apollo Hospitals"
                                         />
@@ -578,6 +615,7 @@ const UserDashboard = () => {
                                             type="text" 
                                             value={diagnosis}
                                             onChange={(e) => setDiagnosis(e.target.value)}
+                                            onKeyDown={(e) => e.key === 'Enter' && handleCreateDraft()}
                                             className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-[12px] focus:outline-none focus:ring-2 focus:ring-[#0052CC]/20 focus:border-[#0052CC] transition-all"
                                             placeholder="e.g. Dengue Fever"
                                         />
@@ -656,7 +694,7 @@ const UserDashboard = () => {
                                     <div className="absolute inset-0 border-4 border-[#0052CC] rounded-full border-t-transparent animate-spin"></div>
                                     <Activity className="absolute inset-0 m-auto w-10 h-10 text-[#0052CC] animate-pulse" />
                                 </div>
-                                <h2 className="text-2xl font-bold font-['Manrope'] mb-4 text-slate-900">ClaimAssist AI is thinking...</h2>
+                                <h2 className="text-2xl font-bold font-['Manrope'] mb-4 text-slate-900">Analyzing your claim...</h2>
                                 <div className="h-6">
                                     <p className="text-[#0052CC] font-semibold text-sm animate-pulse">
                                         {['Extracting text via OCR...', 'Matching Entities (spaCy NLP)...', 'Running Policy Validity Checks...', 'Detecting Duplicate Bills & Fraud...'][analysisStage]}
@@ -675,7 +713,7 @@ const UserDashboard = () => {
                                         <CheckCircle className="w-8 h-8" />
                                     </div>
                                     <h1 className="text-3xl font-bold font-['Manrope'] text-slate-900">AI Analysis Complete</h1>
-                                    <p className="text-slate-500 mt-2">Your claim has been processed by ClaimAssist AI.</p>
+                                    <p className="text-slate-500 mt-2">Your claim has been processed by VeraClaim AI.</p>
                                 </div>
 
                                 <div className="bg-white rounded-[16px] shadow-sm border border-slate-200 overflow-hidden mb-6">
@@ -683,15 +721,36 @@ const UserDashboard = () => {
                                         <div>
                                             <p className="text-sm text-slate-400 font-semibold mb-1">AI Approval Probability Score</p>
                                             <div className="flex items-end">
-                                                <span className={`text-4xl font-bold mr-2 ${processedClaim.riskScore < 40 ? 'text-green-400' : processedClaim.riskScore < 70 ? 'text-amber-400' : 'text-red-400'}`}>
-                                                    {100 - processedClaim.riskScore}%
+                                                <span className={`text-4xl font-bold mr-2 ${
+                                                    (processedClaim.riskScore ?? 50) < 40 ? 'text-green-400' 
+                                                    : (processedClaim.riskScore ?? 50) < 70 ? 'text-amber-400' 
+                                                    : 'text-red-400'
+                                                }`}>
+                                                    {processedClaim.riskScore !== undefined && processedClaim.riskScore !== null
+                                                        ? `${100 - processedClaim.riskScore}%`
+                                                        : 'N/A'}
                                                 </span>
                                                 <span className="text-slate-400 mb-1 font-medium">Likelihood</span>
                                             </div>
+                                            {processedClaim.riskBand && (
+                                                <span className={`inline-block mt-2 text-xs font-bold px-2 py-0.5 rounded ${
+                                                    processedClaim.riskBand === 'LOW' ? 'bg-green-500 text-white'
+                                                    : processedClaim.riskBand === 'MEDIUM' ? 'bg-amber-500 text-white'
+                                                    : 'bg-red-500 text-white'
+                                                }`}>
+                                                    {processedClaim.riskBand} RISK
+                                                </span>
+                                            )}
                                         </div>
                                         <div className="text-right">
-                                            <p className="text-sm text-slate-400 font-semibold mb-1">Extracted Bill Amount</p>
-                                            <p className="text-2xl font-bold text-white">₹{processedClaim.ocrData?.billAmount || 0}</p>
+                                            <p className="text-sm text-slate-400 font-semibold mb-1">Risk Score</p>
+                                            <p className="text-2xl font-bold text-white">
+                                                {processedClaim.riskScore !== undefined && processedClaim.riskScore !== null
+                                                    ? `${processedClaim.riskScore}/100`
+                                                    : 'N/A'}
+                                            </p>
+                                            <p className="text-sm text-slate-400 mt-1">Extracted Bill</p>
+                                            <p className="text-lg font-bold text-white">₹{processedClaim.ocrData?.billAmount || 0}</p>
                                         </div>
                                     </div>
                                     
@@ -712,6 +771,13 @@ const UserDashboard = () => {
                                                 All documents look perfect! Your claim is highly likely to be auto-approved.
                                             </div>
                                         )}
+                                        <div className="mt-4 p-3 bg-blue-50 rounded-[8px] border border-blue-100 text-sm text-blue-700">
+                                            <strong>Status:</strong> {processedClaim.status?.replace('_', ' ')} — {
+                                                processedClaim.status === 'APPROVED' 
+                                                    ? 'Your claim has been auto-approved! Payment will be released shortly.'
+                                                    : 'An agent will review your claim and make a final decision.'
+                                            }
+                                        </div>
                                     </div>
                                 </div>
 

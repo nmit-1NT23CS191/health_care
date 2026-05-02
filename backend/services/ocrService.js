@@ -1,5 +1,7 @@
 const tesseract = require('tesseract.js');
 const fs = require('fs');
+const path = require('path');
+const { Jimp } = require('jimp');
 
 /**
  * Extracts raw text from an image using Tesseract.js
@@ -7,14 +9,42 @@ const fs = require('fs');
  * @returns {Promise<string>} - Extracted text
  */
 const performOCR = async (imagePath) => {
+    // Check if file exists
+    if (!fs.existsSync(imagePath)) {
+        console.error('OCR Error: File does not exist at', imagePath);
+        return '';
+    }
+
+    // Check if it's a supported format
+    const ext = path.extname(imagePath).toLowerCase();
+    const supportedExts = ['.jpg', '.jpeg', '.png', '.bmp', '.pbm', '.webp'];
+    
+    if (!supportedExts.includes(ext)) {
+        console.warn(`OCR Warning: Unsupported file format ${ext}. Skipping OCR.`);
+        return '';
+    }
+
+    // Pre-validate image with Jimp to prevent Tesseract from crashing on malformed files
     try {
-        const result = await tesseract.recognize(imagePath, 'eng', {
-            // logger: m => console.log(m) // Disable logging for cleaner output
-        });
-        return result.data.text;
+        await Jimp.read(imagePath);
+    } catch (jimpErr) {
+        console.error(`OCR Error: Jimp could not read image ${imagePath}. File might be corrupt or invalid.`, jimpErr.message);
+        return '';
+    }
+
+    let worker;
+    try {
+        worker = await tesseract.createWorker('eng');
+        const { data: { text } } = await worker.recognize(imagePath);
+        await worker.terminate();
+        return text;
     } catch (error) {
-        console.error('OCR Error:', error);
-        throw new Error('Failed to perform OCR on document');
+        console.error('OCR Fatal Error:', error.message);
+        if (worker) {
+            try { await worker.terminate(); } catch (e) {}
+        }
+        // Don't throw, just return empty string to let the system fall back
+        return '';
     }
 };
 

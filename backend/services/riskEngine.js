@@ -72,7 +72,7 @@ const calculateRisk = async (claimData, user, hospital, verificationResults) => 
         breakdown.push('No significant fraud history signals (+0)');
     }
 
-    score = Math.min(score, 100);
+    score = Math.max(0, Math.min(score, 100));
 
     let riskBand = 'LOW';
     let approvedAmount = 0;

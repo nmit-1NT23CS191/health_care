@@ -7,17 +7,31 @@ const fs = require('fs');
 exports.createClaim = async (req, res) => {
     try {
         const { hospitalName, diagnosis, claimType, policyId } = req.body;
+        console.log('Create Claim Request:', { userId: req.user?.id, hospitalName, diagnosis, claimType, policyId });
 
-        if (!policyId) return res.status(400).json({ message: 'Policy ID is required' });
+        if (!policyId) {
+            console.error('Create Claim Failure: Missing Policy ID');
+            return res.status(400).json({ error: 'Policy ID is required' });
+        }
 
         // Validate policyId is linked to the requesting user
         const user = await User.findById(req.user.id);
-        if (!user) return res.status(404).json({ message: 'User not found' });
-
-        const hasPolicy = user.policies && user.policies.some(p => String(p.policyId).trim() === String(policyId).trim());
-        if (!hasPolicy) {
-            return res.status(400).json({ message: 'Policy number invalid or not linked to this account' });
+        if (!user) {
+            console.error('Create Claim Failure: User not found', req.user.id);
+            return res.status(404).json({ error: 'User not found' });
         }
+
+        const matchedPolicy = user.policies && user.policies.find(p => String(p.policyId).trim() === String(policyId).trim());
+        if (!matchedPolicy) {
+            console.error('Create Claim Failure: Policy not found/linked', policyId);
+            return res.status(400).json({ error: 'Policy number invalid or not linked to this account' });
+        }
+        
+        if (matchedPolicy.status !== 'ACTIVE') {
+            console.error('Create Claim Failure: Policy status is', matchedPolicy.status);
+            return res.status(400).json({ error: `Policy is ${matchedPolicy.status}. Only ACTIVE policies can be used for claims.` });
+        }
+
         
         let hospital = await Hospital.findOne({ name: new RegExp(hospitalName, 'i') });
         if (!hospital) {
@@ -47,13 +61,15 @@ exports.createClaim = async (req, res) => {
 
         await newClaim.save();
 
-        // update user's claims history (user was loaded earlier for policy validation)
+        // update user's claims history
         user.claimsHistory = user.claimsHistory || [];
         user.claimsHistory.push(newClaim._id);
         await user.save();
 
+        console.log('Claim created successfully:', newClaim._id);
         res.status(201).json({ message: 'Claim created', claim: newClaim });
     } catch (error) {
+        console.error('Create Claim Exception:', error);
         res.status(500).json({ message: 'Server Error', error: error.message });
     }
 };

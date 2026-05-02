@@ -1,15 +1,17 @@
 import React from 'react';
 import { Bell, Globe } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
+import logo from '../assets/veraclaim_icon.png';
 
 const Navbar = ({ userName }) => {
     const { language, toggleLanguage, t } = useLanguage();
 
     return (
         <div className="bg-white border-b border-slate-200 px-6 py-4 flex justify-between items-center sticky top-0 z-10 shadow-sm">
-            <div className="flex items-center space-x-2">
-                <span className="text-xl font-bold font-['Manrope'] text-slate-900">
-                    {t('ClaimAssist AI', 'दावा सहायता AI')}
+            <div className="flex items-center space-x-3">
+                <img src={logo} alt="VeraClaim" className="h-9 w-9 object-contain" />
+                <span className="text-2xl font-black font-['Manrope'] text-slate-900 tracking-tight">
+                    {t('VeraClaim AI', 'वेराक्लेम AI')}
                 </span>
             </div>
             

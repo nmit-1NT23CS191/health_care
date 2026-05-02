@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-    baseURL: 'http://localhost:5000',
+    baseURL: 'http://localhost:5001',
 });
 
 api.interceptors.request.use(config => {
@@ -77,6 +77,17 @@ export const getPendingClaims = async () => {
     const res = await api.get('/agent/claims');
     return res.data;
 };
+
+export const getAgentAnalytics = async () => {
+    const res = await api.get('/agent/analytics');
+    return res.data;
+};
+
+export const getClaimHistory = async () => {
+    const res = await api.get('/agent/claims/history');
+    return res.data;
+};
+
 
 export const agentDecision = async (claimId, decision, finalAmount, notes) => {
     const res = await api.post('/agent/decision', { claimId, decision, finalAmount, notes });
