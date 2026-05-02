@@ -291,11 +291,11 @@ const UserDashboard = () => {
                 {/* Sidebar */}
                 <div className="w-80 glass-card rounded-[32px] p-8 flex flex-col shadow-2xl animate-fade-in-up">
                     <div className="flex-1 space-y-4 mt-4">
-                        <button onClick={() => setStep(0)} className={`w-full flex items-center space-x-4 px-6 py-4 rounded-[20px] font-bold transition-all hover-lift ${step === 0 ? 'bg-[#0052CC] text-white shadow-lg shadow-blue-500/20' : 'text-slate-600 hover:bg-white/50'}`}>
+                        <button onClick={() => setStep(0)} className={`w-full flex items-center space-x-4 px-6 py-4 rounded-[20px] font-bold transition-all hover-3d ${step === 0 ? 'bg-[#0052CC] text-white shadow-lg shadow-blue-500/20' : 'text-slate-600 hover:bg-white/50'}`}>
                             <FileText className="w-5 h-5" />
                             <span>{t('Dashboard', 'डैशबोर्ड')}</span>
                         </button>
-                        <button onClick={() => { resetForm(); setStep(1); }} className={`w-full flex items-center space-x-4 px-6 py-4 rounded-[20px] font-bold transition-all hover-lift ${step !== 0 && step !== 6 ? 'bg-[#0052CC] text-white shadow-lg shadow-blue-500/20' : 'text-slate-600 hover:bg-white/50'}`}>
+                        <button onClick={() => { resetForm(); setStep(1); }} className={`w-full flex items-center space-x-4 px-6 py-4 rounded-[20px] font-bold transition-all hover-3d ${step !== 0 && step !== 6 ? 'bg-[#0052CC] text-white shadow-lg shadow-blue-500/20' : 'text-slate-600 hover:bg-white/50'}`}>
                             <UploadCloud className="w-5 h-5" />
                             <span>{t('New Claim', 'नया दावा')}</span>
                         </button>
@@ -328,7 +328,7 @@ const UserDashboard = () => {
                                 
                                 {/* Eligibility & Cover Overview */}
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-fade-in-up stagger-1">
-                                    <div className="bg-white p-7 rounded-[24px] border border-slate-200 shadow-sm min-h-[180px] hover-lift">
+                                    <div className="bg-white p-7 rounded-[24px] border border-slate-200 shadow-sm min-h-[180px] hover-3d">
                                         <h2 className="text-lg font-bold text-slate-800 mb-4 flex items-center"><ShieldCheck className="w-5 h-5 mr-2 text-[#0052CC]"/> Eligibility & Cover Overview</h2>
                                         
                                         {selectedPolicyIndex >= 0 && userPolicies[selectedPolicyIndex] ? (
