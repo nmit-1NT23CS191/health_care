@@ -51,6 +51,11 @@ const UserDashboard = () => {
     const [policyIdInput, setPolicyIdInput] = useState('');
     const [policyFile, setPolicyFile] = useState(null);
     const [selectedPolicyIndex, setSelectedPolicyIndex] = useState(user.policies?.length > 0 ? 0 : -1);
+    const [isChatOpen, setIsChatOpen] = useState(false);
+    const [chatMessages, setChatMessages] = useState([
+        { role: 'vera', text: 'Hello! I am Vera AI. How can I assist you today?' }
+    ]);
+    const [chatInput, setChatInput] = useState('');
 
     useEffect(() => {
         if (!user.id) {
@@ -256,6 +261,23 @@ const UserDashboard = () => {
             if (reason.toUpperCase().includes(key)) return map[key];
         }
         return reason;
+    };
+
+    const handleSendMessage = () => {
+        if (!chatInput.trim()) return;
+        const userMsg = { role: 'user', text: chatInput };
+        setChatMessages(prev => [...prev, userMsg]);
+        setChatInput('');
+        
+        // Mock AI response
+        setTimeout(() => {
+            const lowInput = chatInput.toLowerCase();
+            let response = "I'm analyzing your request. Would you like me to check your latest claim or explain your coverage?";
+            if (lowInput.includes('claim')) response = `You have ${claims.length} total claims. Your last claim is currently ${claims[0]?.status || 'pending'}.`;
+            if (lowInput.includes('policy') || lowInput.includes('cover')) response = `You are covered for up to ₹${userPolicies[selectedPolicyIndex]?.totalCover?.toLocaleString() || 0}. You have ₹${(userPolicies[selectedPolicyIndex]?.totalCover - userPolicies[selectedPolicyIndex]?.usedCover)?.toLocaleString() || 0} remaining.`;
+            
+            setChatMessages(prev => [...prev, { role: 'vera', text: response }]);
+        }, 1000);
     };
 
     const handleLogout = () => {
@@ -828,15 +850,61 @@ const UserDashboard = () => {
                 </div>
                 {/* AI Assistant FAB */}
                 <div className="fixed bottom-10 right-10 z-50">
-                    <button className="group relative flex items-center justify-center w-16 h-16 bg-gradient-to-tr from-[#0052CC] to-[#0EA5E9] rounded-full shadow-2xl hover:scale-110 active:scale-95 transition-all duration-300">
+                    <button 
+                        onClick={() => setIsChatOpen(!isChatOpen)}
+                        className="group relative flex items-center justify-center w-16 h-16 bg-gradient-to-tr from-[#0052CC] to-[#0EA5E9] rounded-full shadow-2xl hover:scale-110 active:scale-95 transition-all duration-300"
+                    >
                         <div className="absolute inset-0 rounded-full bg-blue-400 opacity-20 animate-ping group-hover:animate-none"></div>
-                        <Activity className="w-8 h-8 text-white animate-pulse" />
-                        <div className="absolute bottom-full right-0 mb-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
-                            <div className="bg-slate-900 text-white text-[10px] font-black py-2 px-4 rounded-xl whitespace-nowrap shadow-xl">
-                                VERA AI IS LISTENING
+                        {isChatOpen ? <X className="w-8 h-8 text-white" /> : <Activity className="w-8 h-8 text-white animate-pulse" />}
+                    </button>
+
+                    {/* Chat Modal */}
+                    {isChatOpen && (
+                        <div className="absolute bottom-20 right-0 w-96 glass-card rounded-[32px] shadow-2xl border border-white/50 overflow-hidden animate-fade-in-up">
+                            <div className="bg-slate-900 p-6 text-white flex justify-between items-center">
+                                <div className="flex items-center space-x-3">
+                                    <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center">
+                                        <Activity className="w-6 h-6 text-white" />
+                                    </div>
+                                    <div>
+                                        <p className="text-xs font-black uppercase tracking-widest text-blue-400">AI Assistant</p>
+                                        <h3 className="text-lg font-black tracking-tight">Vera Intelligence</h3>
+                                    </div>
+                                </div>
+                                <span className="flex items-center space-x-1 px-2 py-1 bg-green-500/20 text-green-400 text-[10px] font-black rounded-full uppercase tracking-widest border border-green-500/30">
+                                    <span className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse mr-1"></span>
+                                    Online
+                                </span>
+                            </div>
+                            
+                            <div className="h-80 overflow-y-auto p-6 space-y-4 custom-scrollbar bg-slate-50/50">
+                                {chatMessages.map((msg, i) => (
+                                    <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                                        <div className={`max-w-[80%] p-4 rounded-[20px] text-sm font-medium shadow-sm ${msg.role === 'user' ? 'bg-[#0052CC] text-white rounded-tr-none' : 'bg-white text-slate-800 rounded-tl-none'}`}>
+                                            {msg.text}
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+
+                            <div className="p-4 bg-white border-t border-slate-100 flex items-center space-x-3">
+                                <input 
+                                    type="text" 
+                                    placeholder="Type a message..." 
+                                    className="flex-1 bg-slate-50 border border-slate-200 rounded-full px-5 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#0052CC]/20 transition-all"
+                                    value={chatInput}
+                                    onChange={(e) => setChatInput(e.target.value)}
+                                    onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+                                />
+                                <button 
+                                    onClick={handleSendMessage}
+                                    className="p-3 bg-[#0052CC] text-white rounded-full hover:bg-blue-800 transition-colors shadow-lg shadow-blue-500/20"
+                                >
+                                    <ArrowRight className="w-5 h-5" />
+                                </button>
                             </div>
                         </div>
-                    </button>
+                    )}
                 </div>
             </div>
         </div>
