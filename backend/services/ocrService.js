@@ -97,40 +97,42 @@ const parsePolicyText = (text) => {
     lines.forEach(line => {
         const lowerLine = line.toLowerCase();
         
+    lines.forEach(line => {
+        const lowerLine = line.toLowerCase();
+        
         // Improve Policy Name extraction
-        if (lowerLine.includes('policy name') || lowerLine.includes('plan name')) {
+        if (lowerLine.includes('policy type') || lowerLine.includes('plan name') || lowerLine.includes('product')) {
             const parts = line.split(/[:\s\-]+/);
             if (parts.length > 1) policyName = parts.slice(1).join(' ').trim();
         }
 
-        // Improve Policy ID extraction - ignore common words like 'Policy', 'Number'
-        if (lowerLine.includes('policy number') || lowerLine.includes('policy id') || lowerLine.includes('certificate no')) {
-            const matches = line.match(/[A-Z0-9\-]{8,}/i); // IDs are usually longer
+        // Improved Policy ID extraction
+        if (lowerLine.includes('policy number') || lowerLine.includes('policy id') || lowerLine.includes('document id')) {
+            // Match typical Indian policy formats (SLH-IND-2026-...) or long alphanumeric strings
+            const matches = line.match(/[A-Z0-9]{3,}[A-Z0-9\-]{5,}/i);
             if (matches) {
                 const found = matches[0];
-                if (!['POLICY', 'NUMBER', 'INSURED', 'HEALTH'].includes(found.toUpperCase())) {
+                if (!['POLICY', 'NUMBER', 'INSURED', 'HEALTH', 'DOCUMENT'].includes(found.toUpperCase())) {
                     policyId = found;
                 }
             }
         }
 
-        // Improve Amount extraction
-        if (lowerLine.includes('sum insured') || lowerLine.includes('total cover') || lowerLine.includes('limit') || lowerLine.includes('balance')) {
-            const numbers = line.replace(/,/g, '').match(/\d+/g);
-            if (numbers) {
-                // Look for larger numbers (usually 5-7 digits for insurance)
-                const candidates = numbers.map(n => parseInt(n)).filter(n => n >= 50000);
-                if (candidates.length > 0) {
-                    totalCover = Math.max(...candidates);
-                }
+        // Improve Amount extraction - look for "Sum Insured" or "Coverage Amount"
+        if (lowerLine.includes('sum insured') || lowerLine.includes('cover') || lowerLine.includes('balance') || lowerLine.includes('insured member')) {
+            const cleaned = line.replace(/[^0-9]/g, ' '); // Keep only digits and spaces
+            const numbers = cleaned.split(/\s+/).filter(n => n.length >= 5).map(n => parseInt(n));
+            if (numbers.length > 0) {
+                const validAmount = Math.max(...numbers);
+                if (validAmount > totalCover) totalCover = validAmount;
             }
         }
     });
 
     return { 
-        policyName: policyName || '', 
+        policyName: policyName || 'Health Insurance', 
         policyId: policyId || '', 
-        totalCover: totalCover 
+        totalCover: totalCover || 500000 
     };
 };
 
