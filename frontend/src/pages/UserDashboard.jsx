@@ -415,6 +415,23 @@ const UserDashboard = () => {
                                         )}
                                     </div>
 
+                                    {/* Secure Vault */}
+                                    <div className="bg-slate-50 p-7 rounded-[24px] border border-slate-200 border-dashed min-h-[180px] hover:border-blue-300 transition-colors flex flex-col group relative overflow-hidden">
+                                        <div className="absolute -right-5 -bottom-5 opacity-5 group-hover:opacity-10 transition-opacity">
+                                            <ShieldCheck className="w-32 h-32 text-blue-600" />
+                                        </div>
+                                        <h2 className="text-lg font-bold text-slate-800 mb-4 flex items-center">
+                                            <ShieldAlert className="w-5 h-5 mr-2 text-blue-600"/> Secure Vault™
+                                        </h2>
+                                        <div className="flex-1 flex flex-col items-center justify-center text-center relative z-10">
+                                            <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-sm mb-3 group-hover:scale-110 transition-transform">
+                                                <FileText className="w-6 h-6 text-slate-400 group-hover:text-blue-500" />
+                                            </div>
+                                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">End-to-End Encrypted</p>
+                                            <p className="text-[9px] text-slate-400 mt-1 max-w-[150px]">Documents protected by AES-256 and Vera AI anti-tamper logic.</p>
+                                        </div>
+                                    </div>
+
                                     {/* Active Policies */}
                                     <div className="bg-white p-7 rounded-[24px] border border-slate-200 shadow-sm min-h-[180px] flex flex-col hover-lift">
                                         <div className="flex justify-between items-center mb-4">
@@ -439,7 +456,14 @@ const UserDashboard = () => {
                                                             <Trash2 className="w-3.5 h-3.5" />
                                                         </button>
                                                         <div className="flex justify-between items-start mb-1 pr-6">
-                                                            <span className="font-bold text-slate-900 text-sm">{p.name || 'Untitled Policy'}</span>
+                                                            <div className="flex flex-col">
+                                                                <span className="font-bold text-slate-900 text-sm">{p.name || 'Untitled Policy'}</span>
+                                                                {p.status === 'ACTIVE' && (
+                                                                    <span className="flex items-center text-[8px] font-black text-blue-500 bg-blue-50 px-2 py-0.5 rounded-full border border-blue-100 animate-pulse mt-1 w-fit">
+                                                                        <ShieldCheck className="w-2.5 h-2.5 mr-1" /> VERA VERIFIED
+                                                                    </span>
+                                                                )}
+                                                            </div>
                                                             <span className={`px-2 py-0.5 text-[10px] font-bold rounded ${p.status === 'ACTIVE' ? 'bg-green-100 text-green-700' : p.status === 'REJECTED' ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'}`}>
                                                                 {p.status || 'PENDING'}
                                                             </span>
