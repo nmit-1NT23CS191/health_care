@@ -61,6 +61,7 @@ const UserDashboard = () => {
     const [processedClaim, setProcessedClaim] = useState(null);
     const [userPolicies, setUserPolicies] = useState(user.policies || []);
     const [isAddingPolicy, setIsAddingPolicy] = useState(false);
+    const [isVaultOpen, setIsVaultOpen] = useState(false);
     const [policyNameInput, setPolicyNameInput] = useState('');
     const [policyIdInput, setPolicyIdInput] = useState('');
     const [policyFile, setPolicyFile] = useState(null);
@@ -416,7 +417,10 @@ const UserDashboard = () => {
                                     </div>
 
                                     {/* Secure Vault */}
-                                    <div className="bg-slate-50 p-7 rounded-[24px] border border-slate-200 border-dashed min-h-[180px] hover:border-blue-300 transition-colors flex flex-col group relative overflow-hidden">
+                                    <div 
+                                        onClick={() => setIsVaultOpen(true)}
+                                        className="bg-slate-50 p-7 rounded-[24px] border border-slate-200 border-dashed min-h-[180px] hover:border-blue-300 transition-colors flex flex-col group relative overflow-hidden cursor-pointer shadow-sm hover:shadow-lg"
+                                    >
                                         <div className="absolute -right-5 -bottom-5 opacity-5 group-hover:opacity-10 transition-opacity">
                                             <ShieldCheck className="w-32 h-32 text-blue-600" />
                                         </div>
@@ -927,6 +931,77 @@ const UserDashboard = () => {
 
                     </div>
                 </div>
+                {/* Secure Vault Modal */}
+                {isVaultOpen && (
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 backdrop-blur-md bg-slate-900/60 animate-fade-in">
+                        <div className="w-full max-w-2xl bg-white rounded-[32px] shadow-2xl overflow-hidden animate-fade-in-up">
+                            <div className="bg-slate-900 p-8 text-white flex justify-between items-center">
+                                <div className="flex items-center space-x-4">
+                                    <div className="w-12 h-12 bg-blue-600 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-500/20">
+                                        <ShieldCheck className="w-7 h-7" />
+                                    </div>
+                                    <div>
+                                        <h3 className="text-xl font-black tracking-tight">Secure Document Vault™</h3>
+                                        <p className="text-[10px] font-black text-blue-400 uppercase tracking-widest">Military-Grade Encryption (AES-256)</p>
+                                    </div>
+                                </div>
+                                <button onClick={() => setIsVaultOpen(false)} className="p-2 hover:bg-white/10 rounded-full transition-colors">
+                                    <X className="w-6 h-6" />
+                                </button>
+                            </div>
+                            
+                            <div className="p-8">
+                                <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
+                                    {/* Policy Documents */}
+                                    <div className="space-y-2">
+                                        <h4 className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] mb-4">Verified Policies</h4>
+                                        {userPolicies.map((p, i) => (
+                                            <div key={i} className="flex justify-between items-center p-4 bg-slate-50 rounded-2xl border border-slate-100 hover:border-blue-200 transition-all group">
+                                                <div className="flex items-center space-x-4">
+                                                    <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center border border-slate-200">
+                                                        <FileText className="w-5 h-5 text-blue-600" />
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-sm font-bold text-slate-900">{p.name}</p>
+                                                        <p className="text-[10px] text-slate-500 font-medium">{p.policyId} • {p.status}</p>
+                                                    </div>
+                                                </div>
+                                                <button className="px-4 py-2 bg-white text-[10px] font-black uppercase tracking-widest text-[#0052CC] border border-slate-200 rounded-full hover:bg-blue-50 transition-colors shadow-sm">View Securely</button>
+                                            </div>
+                                        ))}
+                                    </div>
+
+                                    {/* Claim Documents */}
+                                    <div className="space-y-2 pt-6">
+                                        <h4 className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] mb-4">Claim Artifacts</h4>
+                                        {claims.map((c, i) => (
+                                            <div key={i} className="flex justify-between items-center p-4 bg-slate-50 rounded-2xl border border-slate-100 hover:border-blue-200 transition-all">
+                                                <div className="flex items-center space-x-4">
+                                                    <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center border border-slate-200">
+                                                        <CheckSquare className="w-5 h-5 text-green-600" />
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-sm font-bold text-slate-900">Claim {c.claimId}</p>
+                                                        <p className="text-[10px] text-slate-500 font-medium">{c.claimType} • {c.status}</p>
+                                                    </div>
+                                                </div>
+                                                <button className="px-4 py-2 bg-white text-[10px] font-black uppercase tracking-widest text-slate-400 border border-slate-200 rounded-full cursor-not-allowed">Encrypted</button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="p-6 bg-slate-50 border-t border-slate-200 flex justify-center">
+                                <div className="flex items-center space-x-2 text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                                    <ShieldCheck className="w-4 h-4 text-green-500" />
+                                    <span>Vera AI Real-Time Protection Active</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
                 {/* AI Assistant FAB */}
                 <div className="fixed bottom-10 right-10 z-50">
                     <button 
