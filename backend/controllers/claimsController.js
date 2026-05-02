@@ -1,0 +1,106 @@
+const Claim = require('../models/Claim');
+const Hospital = require('../models/Hospital');
+const User = require('../models/User');
+const crypto = require('crypto');
+const fs = require('fs');
+
+exports.createClaim = async (req, res) => {
+    try {
+        const { hospitalName, diagnosis, claimType } = req.body;
+        
+        let hospital = await Hospital.findOne({ name: new RegExp(hospitalName, 'i') });
+        if (!hospital) {
+            hospital = new Hospital({
+                name: hospitalName,
+                gstNumber: `GST-${Math.floor(Math.random()*1000000)}`,
+                trustScore: 0.2,
+                totalClaims: 1
+            });
+            await hospital.save();
+        } else {
+            hospital.totalClaims += 1;
+            await hospital.save();
+        }
+
+        const newClaim = new Claim({
+            userId: req.user.id,
+            hospitalId: hospital._id,
+            claimType: claimType || 'Other',
+            ocrData: {
+                hospitalName: hospitalName,
+                diagnosis: diagnosis
+            },
+            status: 'SUBMITTED'
+        });
+
+        await newClaim.save();
+
+        const user = await User.findById(req.user.id);
+        user.claimsHistory.push(newClaim._id);
+        await user.save();
+
+        res.status(201).json({ message: 'Claim created', claim: newClaim });
+    } catch (error) {
+        res.status(500).json({ message: 'Server Error', error: error.message });
+    }
+};
+
+exports.uploadDocument = async (req, res) => {
+    try {
+        if (!req.file) return res.status(400).json({ message: 'Please upload a file' });
+        
+        const claimId = req.params.id;
+        const claim = await Claim.findById(claimId);
+        if (!claim) return res.status(404).json({ message: 'Claim not found' });
+
+        const fileBuffer = fs.readFileSync(req.file.path);
+        const hashSum = crypto.createHash('sha256');
+        hashSum.update(fileBuffer);
+        const fileHash = hashSum.digest('hex');
+
+        const duplicate = await Claim.findOne({ 'documents.hash': fileHash });
+        if (duplicate && duplicate._id.toString() !== claimId) {
+            return res.status(400).json({ message: 'Duplicate document detected' });
+        }
+
+        claim.documents.push({
+            filename: req.file.filename,
+            path: req.file.path,
+            hash: fileHash
+        });
+
+        await claim.save();
+        res.status(200).json({ message: 'Document uploaded', claim });
+    } catch (error) {
+        res.status(500).json({ message: 'Upload error', error: error.message });
+    }
+};
+
+exports.getUserClaims = async (req, res) => {
+    try {
+        const claims = await Claim.find({ userId: req.user.id }).populate('hospitalId');
+        res.status(200).json(claims);
+    } catch (error) {
+        res.status(500).json({ message: 'Server Error' });
+    }
+};
+
+exports.getClaimById = async (req, res) => {
+    try {
+        const claim = await Claim.findById(req.params.id).populate('hospitalId');
+        if (!claim) return res.status(404).json({ message: 'Claim not found' });
+        res.status(200).json(claim);
+    } catch (error) {
+        res.status(500).json({ message: 'Server Error' });
+    }
+};
+
+exports.getClaimStatus = async (req, res) => {
+    try {
+        const claim = await Claim.findById(req.params.id).select('status riskBand approvedAmount fundStage');
+        if (!claim) return res.status(404).json({ message: 'Claim not found' });
+        res.status(200).json(claim);
+    } catch (error) {
+        res.status(500).json({ message: 'Server Error' });
+    }
+};
