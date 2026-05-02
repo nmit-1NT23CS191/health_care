@@ -223,39 +223,45 @@ const AgentDashboard = () => {
     };
 
     return (
-        <div className="flex h-screen bg-slate-50">
+        <div className="flex h-screen mesh-gradient font-['Manrope'] overflow-hidden">
             {/* Sidebar */}
-            <div className="w-64 bg-slate-900 text-white flex flex-col">
-                <div className="p-6">
-                    <h1 className="text-xl font-bold font-['Manrope'] mb-8 text-blue-400">Agent Portal</h1>
-                    <div className="space-y-2">
-                        <button onClick={() => setViewMode('analytics')} className={`w-full flex items-center justify-between px-4 py-3 rounded-[12px] font-medium transition-colors ${viewMode === 'analytics' ? 'bg-blue-600' : 'hover:bg-slate-800'}`}>
-                            <span className="flex items-center space-x-3"><BarChart2 className="w-5 h-5" /><span>Analytics</span></span>
-                        </button>
-                        <button onClick={() => setViewMode('claims')} className={`w-full flex items-center justify-between px-4 py-3 rounded-[12px] font-medium transition-colors ${viewMode === 'claims' ? 'bg-blue-600' : 'hover:bg-slate-800'}`}>
-                            <span className="flex items-center space-x-3"><FileText className="w-5 h-5" /><span>Pending Claims</span></span>
-                            {claims.length > 0 && <span className="bg-amber-400 text-slate-900 text-[10px] font-bold px-2 py-0.5 rounded-full">{claims.length}</span>}
-                        </button>
-                        <button onClick={() => setViewMode('policies')} className={`w-full flex items-center justify-between px-4 py-3 rounded-[12px] font-medium transition-colors ${viewMode === 'policies' ? 'bg-blue-600' : 'hover:bg-slate-800'}`}>
-                            <span className="flex items-center space-x-3"><ShieldCheck className="w-5 h-5" /><span>Pending Policies</span></span>
-                            {policies.length > 0 && <span className="bg-amber-400 text-slate-900 text-[10px] font-bold px-2 py-0.5 rounded-full">{policies.length}</span>}
-                        </button>
-                        <button onClick={() => setViewMode('history')} className={`w-full flex items-center justify-between px-4 py-3 rounded-[12px] font-medium transition-colors ${viewMode === 'history' ? 'bg-blue-600' : 'hover:bg-slate-800'}`}>
-                            <span className="flex items-center space-x-3"><History className="w-5 h-5" /><span>Claim History</span></span>
-                        </button>
+            <div className="w-80 glass-card m-6 rounded-[32px] flex flex-col shadow-2xl animate-fade-in-up">
+                <div className="p-10">
+                    <div className="flex items-center space-x-3 mb-10 group">
+                        <img src={logo} alt="VeraClaim" className="h-12 w-12 object-contain animate-float" />
+                        <h1 className="text-2xl font-black text-slate-900 tracking-tighter gradient-text">Agent Hub</h1>
+                    </div>
+                    
+                    <div className="space-y-4">
+                        {[
+                            { id: 'analytics', label: 'Analytics', icon: <BarChart2 className="w-5 h-5" /> },
+                            { id: 'claims', label: 'Pending Claims', icon: <FileText className="w-5 h-5" />, count: claims.length, countColor: 'bg-amber-400' },
+                            { id: 'policies', label: 'Pending Policies', icon: <ShieldCheck className="w-5 h-5" />, count: policies.length, countColor: 'bg-[#0052CC]' },
+                            { id: 'history', label: 'Claim History', icon: <History className="w-5 h-5" /> }
+                        ].map((item) => (
+                            <button 
+                                key={item.id} 
+                                onClick={() => setViewMode(item.id)} 
+                                className={`w-full flex items-center justify-between px-6 py-4 rounded-[20px] font-bold transition-all hover-lift ${viewMode === item.id ? 'bg-[#0052CC] text-white shadow-lg shadow-blue-500/30' : 'text-slate-600 hover:bg-white/50'}`}
+                            >
+                                <span className="flex items-center space-x-4">{item.icon}<span>{item.label}</span></span>
+                                {item.count > 0 && <span className={`${item.countColor} ${item.id === viewMode ? 'text-blue-900' : 'text-white'} text-[10px] font-black px-2.5 py-1 rounded-full shadow-sm`}>{item.count}</span>}
+                            </button>
+                        ))}
                     </div>
                 </div>
-                <div className="mt-auto p-6 border-t border-slate-800">
-                    <button onClick={handleLogout} className="flex items-center space-x-2 text-slate-400 hover:text-white transition-colors text-sm font-medium">
-                        <LogOut className="w-4 h-4" /><span>Sign Out</span>
+                
+                <div className="mt-auto p-10 border-t border-slate-200/50">
+                    <button onClick={handleLogout} className="flex items-center space-x-3 text-slate-500 hover:text-red-600 transition-all font-bold text-sm hover:translate-x-1">
+                        <LogOut className="w-5 h-5" /><span>Sign Out</span>
                     </button>
                 </div>
             </div>
 
             {/* Main */}
-            <div className="flex-1 flex flex-col overflow-hidden">
+            <div className="flex-1 glass-card my-6 mr-6 rounded-[32px] flex flex-col overflow-hidden shadow-2xl animate-fade-in-up stagger-1">
                 {/* Top Bar */}
-                <div className="bg-white border-b border-slate-200 px-8 py-3 flex justify-between items-center shadow-sm z-10">
+                <div className="bg-white/50 border-b border-slate-200/50 px-10 py-6 flex justify-between items-center z-10 backdrop-blur-sm">
                     <div>
                         <p className="text-xs text-slate-500 uppercase tracking-wider font-bold flex items-center"><CalendarDays className="w-3 h-3 mr-1"/> Today</p>
                         <p className="text-sm font-bold text-slate-800">{analytics?.currentDate || '...'}</p>

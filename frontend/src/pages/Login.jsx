@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { loginUser, registerUser } from '../services/api';
 import logo from '../assets/veraclaim_icon.png';
+import { RefreshCw } from 'lucide-react';
 
 const Login = () => {
     const [isLogin, setIsLogin] = useState(true);
@@ -39,11 +40,11 @@ const Login = () => {
     };
 
     return (
-        <div className="flex items-center justify-center min-h-screen bg-slate-100">
-            <div className="w-full max-w-md p-8 bg-white rounded-[12px] shadow-[0_10px_40px_-10px_rgba(0,82,204,0.1)] border border-slate-200">
-                <div className="flex flex-col items-center mb-8">
-                    <img src={logo} alt="VeraClaim" className="w-20 h-20 mb-3 object-contain" />
-                    <h2 className="text-3xl font-black text-slate-900 font-['Manrope'] tracking-tighter">VeraClaim AI</h2>
+        <div className="flex items-center justify-center min-h-screen mesh-gradient px-4">
+            <div className="w-full max-w-md p-10 glass-card rounded-[32px] shadow-2xl animate-fade-in-up">
+                <div className="flex flex-col items-center mb-10">
+                    <img src={logo} alt="VeraClaim" className="w-28 h-28 mb-6 object-contain animate-float glow-blue" />
+                    <h2 className="text-4xl font-black text-slate-900 font-['Manrope'] tracking-tighter gradient-text">VeraClaim AI</h2>
                     <p className="text-slate-500 text-sm mt-1">{isLogin ? 'Sign in to manage your claims' : 'Create an account to get started'}</p>
                 </div>
 
@@ -87,9 +88,10 @@ const Login = () => {
                     <button 
                         type="submit" 
                         disabled={loading}
-                        className="w-full py-3 bg-[#0052CC] text-white rounded-[12px] font-semibold hover:bg-blue-800 transition-colors disabled:opacity-70"
+                        className="w-full py-4 bg-gradient-to-r from-[#0052CC] to-[#0EA5E9] text-white rounded-[16px] font-bold text-lg hover:shadow-xl hover:shadow-blue-500/30 transition-all hover:-translate-y-1 active:scale-95 disabled:opacity-70 flex items-center justify-center"
                     >
-                        {loading ? 'Processing...' : (isLogin ? 'Sign In' : 'Create Account')}
+                        {loading ? <RefreshCw className="animate-spin w-5 h-5 mr-2" /> : null}
+                        {loading ? 'Processing...' : (isLogin ? 'Sign In to VeraClaim' : 'Join VeraClaim AI')}
                     </button>
                 </form>
 

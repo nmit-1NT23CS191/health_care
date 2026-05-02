@@ -285,36 +285,36 @@ const UserDashboard = () => {
 
 
     return (
-        <div className="flex h-screen bg-slate-50 flex-col">
+        <div className="flex h-screen mesh-gradient flex-col font-['Manrope'] overflow-hidden">
             <Navbar userName={user.name} />
-            <div className="flex flex-1 overflow-hidden">
+            <div className="flex flex-1 overflow-hidden p-6 gap-6">
                 {/* Sidebar */}
-                <div className="w-64 bg-white border-r border-slate-200 p-6 flex flex-col">
-                    <div className="flex-1 space-y-2 mt-4">
-                        <button onClick={() => setStep(0)} className={`w-full flex items-center space-x-3 px-4 py-3 rounded-[12px] font-medium ${step === 0 ? 'bg-blue-50 text-[#0052CC]' : 'text-slate-600 hover:bg-slate-50'}`}>
+                <div className="w-80 glass-card rounded-[32px] p-8 flex flex-col shadow-2xl animate-fade-in-up">
+                    <div className="flex-1 space-y-4 mt-4">
+                        <button onClick={() => setStep(0)} className={`w-full flex items-center space-x-4 px-6 py-4 rounded-[20px] font-bold transition-all hover-lift ${step === 0 ? 'bg-[#0052CC] text-white shadow-lg shadow-blue-500/20' : 'text-slate-600 hover:bg-white/50'}`}>
                             <FileText className="w-5 h-5" />
                             <span>{t('Dashboard', 'डैशबोर्ड')}</span>
                         </button>
-                        <button onClick={() => { resetForm(); setStep(1); }} className={`w-full flex items-center space-x-3 px-4 py-3 rounded-[12px] font-medium ${step !== 0 && step !== 6 ? 'bg-blue-50 text-[#0052CC]' : 'text-slate-600 hover:bg-slate-50'}`}>
+                        <button onClick={() => { resetForm(); setStep(1); }} className={`w-full flex items-center space-x-4 px-6 py-4 rounded-[20px] font-bold transition-all hover-lift ${step !== 0 && step !== 6 ? 'bg-[#0052CC] text-white shadow-lg shadow-blue-500/20' : 'text-slate-600 hover:bg-white/50'}`}>
                             <UploadCloud className="w-5 h-5" />
                             <span>{t('New Claim', 'नया दावा')}</span>
                         </button>
                     </div>
 
-                    <div className="pt-6 border-t border-slate-200">
-                        <div className="mb-4">
-                            <p className="text-sm font-semibold text-slate-900">{user.name}</p>
-                            <p className="text-xs text-slate-500">KYC: {user.kycStatus || 'UNVERIFIED'}</p>
+                    <div className="pt-8 border-t border-slate-200/50">
+                        <div className="mb-6">
+                            <p className="text-lg font-black text-slate-900 tracking-tight">{user.name}</p>
+                            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">KYC: {user.kycStatus || 'UNVERIFIED'}</p>
                         </div>
-                        <button onClick={handleLogout} className="flex items-center space-x-2 text-slate-600 hover:text-red-600 transition-colors text-sm font-medium">
-                            <LogOut className="w-4 h-4" />
+                        <button onClick={handleLogout} className="flex items-center space-x-3 text-slate-500 hover:text-red-600 transition-all font-bold text-sm hover:translate-x-1">
+                            <LogOut className="w-5 h-5" />
                             <span>{t('Sign Out', 'साइन आउट')}</span>
                         </button>
                     </div>
                 </div>
 
                 {/* Main Content */}
-                <div className="flex-1 overflow-auto p-10 relative">
+                <div className="flex-1 glass-card rounded-[32px] overflow-auto p-10 relative shadow-2xl animate-fade-in-up stagger-1">
                     <div className="max-w-4xl mx-auto">
                         
                         {step === 0 && (
