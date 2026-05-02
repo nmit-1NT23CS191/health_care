@@ -30,7 +30,9 @@ const UserDashboard = () => {
     const [isAddingPolicy, setIsAddingPolicy] = useState(false);
     const [policyNameInput, setPolicyNameInput] = useState('');
     const [policyIdInput, setPolicyIdInput] = useState('');
+    const [policyAmountInput, setPolicyAmountInput] = useState(500000);
     const [policyFile, setPolicyFile] = useState(null);
+    const [isOcrLoading, setIsOcrLoading] = useState(false);
     const [selectedPolicyIndex, setSelectedPolicyIndex] = useState(user.policies?.length > 0 ? 0 : -1);
 
     useEffect(() => {
@@ -90,7 +92,7 @@ const UserDashboard = () => {
         }
     };
 
-    const [policyAmountInput, setPolicyAmountInput] = useState(500000);
+
     const handleAddPolicy = async () => {
         if (!policyNameInput || !policyIdInput) return setError('Please enter both Policy Name and ID');
         setUploading(true);
