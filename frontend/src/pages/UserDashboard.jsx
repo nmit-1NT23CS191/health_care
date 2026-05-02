@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getUserClaims, createClaim, uploadClaimDocument, triggerAiAnalysis, updateUserPolicy, deleteUserPolicy, getUserProfile } from '../services/api';
-import { UploadCloud, FileText, Activity, LogOut, CheckCircle, Clock, Search, ShieldAlert, ArrowRight, ShieldCheck, FileCheck, CheckSquare, RefreshCw, X, Trash2, History } from 'lucide-react';
+import { UploadCloud, FileText, Activity, LogOut, CheckCircle, Clock, Search, ShieldAlert, ArrowRight, ShieldCheck, FileCheck, CheckSquare, RefreshCw, X, Trash2, History, CreditCard } from 'lucide-react';
 import Navbar from '../components/Navbar';
 import { useLanguage } from '../context/LanguageContext';
 
@@ -352,7 +352,6 @@ const UserDashboard = () => {
                     <div className="pt-8 border-t border-slate-200/50">
                         <div className="mb-6">
                             <p className="text-lg font-black text-slate-900 tracking-tight">{user.name}</p>
-                            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">KYC: {user.kycStatus || 'UNVERIFIED'}</p>
                         </div>
                         <button onClick={handleLogout} className="flex items-center space-x-3 text-slate-500 hover:text-red-600 transition-all font-bold text-sm hover:translate-x-1">
                             <LogOut className="w-5 h-5" />
